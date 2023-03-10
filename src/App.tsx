@@ -15,7 +15,7 @@ export default function Home() {
     VIDEO_EXTENSION_OPTIONS[0].value
   )
   const ffmpeg = createFFmpeg({
-    log: true,
+    log: process.env.NODE_ENV === 'development',
     progress: ({ ratio }) => {
       setProgress(Math.round(ratio * 100))
     },
@@ -170,7 +170,8 @@ export default function Home() {
         ))}
       </ul>
       <p>
-        No files are uploaded to the server; the process is entirely done on the browser.
+        No files are uploaded to the server; the process is entirely done on the
+        browser.
       </p>
       <input type='file' accept='video/*' onChange={handleFileChange} />
 
@@ -185,6 +186,7 @@ export default function Home() {
           <video src={previewUrl} controls ref={videoRef} />
         </>
       )}
+      <p>v{import.meta.env.PACKAGE_VERSION}</p>
     </main>
   )
 }
