@@ -24,6 +24,7 @@ export default function Home() {
 
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = React.useState<string>('')
+  const [isLoading, setIsLoading] = React.useState(false)
 
   function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
@@ -65,6 +66,8 @@ export default function Home() {
 
   async function convertVideo(selectedFile: File, outputExtension = 'mp4') {
     try {
+      setIsLoading(true)
+
       if (selectedFile) {
         const outputName = `${trimFilename(
           selectedFile.name
@@ -80,11 +83,15 @@ export default function Home() {
       }
     } catch (error) {
       console.error(error)
+    } finally {
+      setIsLoading(false)
     }
   }
 
   async function convertVideoToWhatsapp(selectedFile: File) {
     try {
+      setIsLoading(true)
+
       if (selectedFile) {
         const outputExtension = 'mp4'
         const outputName = generateOutputName(
@@ -102,6 +109,8 @@ export default function Home() {
       }
     } catch (error) {
       console.error(error)
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -109,7 +118,12 @@ export default function Home() {
     switch (action) {
       case 'optimize-video-whatsapp':
         return (
-          <button onClick={() => convertVideoToWhatsapp(file)}>Optimize</button>
+          <button
+            onClick={() => convertVideoToWhatsapp(file)}
+            disabled={isLoading}
+          >
+            Optimize
+          </button>
         )
       case 'convert-video':
       default:
@@ -128,7 +142,10 @@ export default function Home() {
                 ))}
               </select>
             </label>
-            <button onClick={() => convertVideo(file, targetExtension)}>
+            <button
+              onClick={() => convertVideo(file, targetExtension)}
+              disabled={isLoading}
+            >
               Convert
             </button>
           </>
@@ -152,12 +169,17 @@ export default function Home() {
           </li>
         ))}
       </ul>
+      <p>
+        No files are uploaded to the server; the process is entirely done on the browser.
+      </p>
       <input type='file' accept='video/*' onChange={handleFileChange} />
 
       {selectedFile && (
         <>
           {progress > 0 && <p>Transcoding... {progress}%</p>}
-          <button onClick={() => setSelectedFile(null)}>Clear</button>
+          <button onClick={() => setSelectedFile(null)} disabled={isLoading}>
+            Clear
+          </button>
           <p>Selected file: {selectedFile.name}</p>
           <ConvertActions action={mediaAction} file={selectedFile} />
           <video src={previewUrl} controls ref={videoRef} />
