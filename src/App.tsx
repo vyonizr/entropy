@@ -1,39 +1,7 @@
 import React from 'react'
 import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg'
-
-const RADIO_OPTIONS = [
-  {
-    label: 'Convert Video',
-    value: 'convert-video',
-  },
-  {
-    label: 'Optimize Video for Whatsapp',
-    value: 'optimize-video-whatsapp',
-  },
-]
-
-const VIDEO_EXTENSION_OPTIONS = [
-  {
-    label: 'MP4',
-    value: 'mp4',
-  },
-  {
-    label: 'MOV',
-    value: 'mov',
-  },
-  {
-    label: 'WMV',
-    value: 'wmv',
-  },
-  {
-    label: 'AVI',
-    value: 'avi',
-  },
-  {
-    label: 'MKV',
-    value: 'mkv',
-  },
-]
+import { RADIO_OPTIONS, VIDEO_EXTENSION_OPTIONS } from './constants'
+import { trimFilename, generateOutputName } from './utils'
 
 type ConvertActionProps = {
   action: string
@@ -42,7 +10,7 @@ type ConvertActionProps = {
 
 export default function Home() {
   const [progress, setProgress] = React.useState(0)
-  const [mediaAction, setMediaAction] = React.useState('convert-video')
+  const [mediaAction, setMediaAction] = React.useState(RADIO_OPTIONS[0].value)
   const [targetExtension, setTargetExtension] = React.useState(
     VIDEO_EXTENSION_OPTIONS[0].value
   )
@@ -56,7 +24,6 @@ export default function Home() {
 
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = React.useState<string>('')
-  // const [isPlaying, setIsPlaying] = React.useState(false)
 
   function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
@@ -70,15 +37,6 @@ export default function Home() {
     }
   }
 
-  function trimFilename(filename: string) {
-    const lastDot = filename.lastIndexOf('.')
-    return filename.substring(0, lastDot)
-  }
-
-  function generateOutputName(fileName: string, extension: string) {
-    return `${trimFilename(fileName)}_entropy.${extension}`
-  }
-
   function triggerDownload(URL: string, fileName: string) {
     const anchor = document.createElement('a')
     anchor.href = URL
@@ -88,8 +46,8 @@ export default function Home() {
 
   async function runFFMPEG(
     selectedFile: File,
-    method: string,
-    outputName: string
+    outputName: string,
+    method = ''
   ) {
     if (selectedFile) {
       await ffmpeg.load()
@@ -106,18 +64,22 @@ export default function Home() {
   }
 
   async function convertVideo(selectedFile: File, outputExtension = 'mp4') {
-    if (selectedFile) {
-      const outputName = `${trimFilename(
-        selectedFile.name
-      )}_entropy.${outputExtension}`
-      await ffmpeg.load()
-      ffmpeg.FS('writeFile', selectedFile.name, await fetchFile(selectedFile))
-      await ffmpeg.run('-i', selectedFile.name, outputName)
-      const outputData = ffmpeg.FS('readFile', outputName)
-      const url = URL.createObjectURL(
-        new Blob([outputData.buffer], { type: `video/${outputExtension}` })
-      )
-      triggerDownload(url, outputName)
+    try {
+      if (selectedFile) {
+        const outputName = `${trimFilename(
+          selectedFile.name
+        )}_entropy.${outputExtension}`
+
+        const outputData = await runFFMPEG(selectedFile, outputName)
+        if (outputData) {
+          const url = URL.createObjectURL(
+            new Blob([outputData.buffer], { type: `video/${outputExtension}` })
+          )
+          triggerDownload(url, outputName)
+        }
+      }
+    } catch (error) {
+      console.error(error)
     }
   }
 
@@ -130,7 +92,7 @@ export default function Home() {
           outputExtension
         )
         const method = `-vf scale=trunc(iw/2)*2:trunc(ih/2)*2 -c:v libx264 -profile:v baseline -level 3.0 -preset slow -crf 23 -c:a aac -b:a 128k -ac 2`
-        const outputData = await runFFMPEG(selectedFile, method, outputName)
+        const outputData = await runFFMPEG(selectedFile, outputName, method)
         if (outputData) {
           const url = URL.createObjectURL(
             new Blob([outputData.buffer], { type: `video/${outputExtension}` })
@@ -194,7 +156,7 @@ export default function Home() {
 
       {selectedFile && (
         <>
-          {progress > 0 && <p>{progress}%</p>}
+          {progress > 0 && <p>Transcoding... {progress}%</p>}
           <button onClick={() => setSelectedFile(null)}>Clear</button>
           <p>Selected file: {selectedFile.name}</p>
           <ConvertActions action={mediaAction} file={selectedFile} />
