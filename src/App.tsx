@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg'
 import { RADIO_OPTIONS, VIDEO_EXTENSION_OPTIONS } from './constants'
 import { trimFilename, generateOutputName } from './utils'
@@ -10,7 +10,7 @@ type ConvertActionProps = {
 
 export default function Home() {
   const [progress, setProgress] = React.useState(0)
-  const [mediaAction, setMediaAction] = React.useState(RADIO_OPTIONS[0].value)
+  const [mediaAction, setMediaAction] = React.useState(RADIO_OPTIONS[0])
   const [targetExtension, setTargetExtension] = React.useState(
     VIDEO_EXTENSION_OPTIONS[0].value
   )
@@ -140,6 +140,32 @@ export default function Home() {
     }
   }
 
+  async function createWaveform(selectedFile: File) {
+    try {
+      setIsLoading(true)
+
+      if (selectedFile) {
+        const outputExtension = 'png'
+        const outputName = generateOutputName(
+          selectedFile.name,
+          outputExtension
+        )
+        const method = `-filter_complex [0:a]aformat=channel_layouts=mono,showwavespic=s=1920x1080:colors=#ffffff -vframes 1 -c:v png -f image2pipe`
+        const outputData = await runFFMPEG(selectedFile, outputName, method)
+        if (outputData) {
+          const url = URL.createObjectURL(
+            new Blob([outputData.buffer], { type: `image/${outputExtension}` })
+          )
+          triggerDownload(url, outputName)
+        }
+      }
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   function ConvertActions({ action, file }: ConvertActionProps) {
     switch (action) {
       case 'optimize-video-whatsapp':
@@ -155,6 +181,12 @@ export default function Home() {
         return (
           <button onClick={() => videoToGIF(file)} disabled={isLoading}>
             Convert to GIF
+          </button>
+        )
+      case 'audio-to-waveform':
+        return (
+          <button onClick={() => createWaveform(file)} disabled={isLoading}>
+            Create waveform
           </button>
         )
       case 'convert-video':
@@ -185,19 +217,22 @@ export default function Home() {
     }
   }
 
-  console.log(mediaAction, '<== mediaAction')
+  const acceptedFileTypes = useMemo(
+    () => (mediaAction.type === 'video' ? 'video/*' : 'audio/*'),
+    [mediaAction.type]
+  )
 
   return (
     <main>
       <ul>
         {RADIO_OPTIONS.map((option) => (
-          <li key={option.value} onChange={() => setMediaAction(option.value)}>
+          <li key={option.value} onChange={() => setMediaAction(option)}>
             <input
               type='radio'
               name='media-action'
               value={option.label}
               id={option.value}
-              checked={mediaAction === option.value}
+              checked={mediaAction.value === option.value}
             />
             <label htmlFor={option.value}>{option.label}</label>
           </li>
@@ -207,7 +242,11 @@ export default function Home() {
         No files are uploaded to the server; the process is entirely done on the
         browser.
       </p>
-      <input type='file' accept='video/*' onChange={handleFileChange} />
+      <input
+        type='file'
+        accept={acceptedFileTypes}
+        onChange={handleFileChange}
+      />
 
       {selectedFile && (
         <>
@@ -216,7 +255,7 @@ export default function Home() {
             Clear
           </button>
           <p>Selected file: {selectedFile.name}</p>
-          <ConvertActions action={mediaAction} file={selectedFile} />
+          <ConvertActions action={mediaAction.value} file={selectedFile} />
           <video src={previewUrl} controls ref={videoRef} />
         </>
       )}

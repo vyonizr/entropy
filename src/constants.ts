@@ -2,14 +2,22 @@ export const RADIO_OPTIONS = [
   {
     label: 'Convert Video',
     value: 'convert-video',
+    type: 'video',
   },
   {
     label: 'Optimize Video for WhatsApp',
     value: 'optimize-video-whatsapp',
+    type: 'video',
   },
   {
     label: 'Convert Video to GIF',
     value: 'video-to-gif',
+    type: 'video',
+  },
+  {
+    label: 'Draw Waveform from Audio',
+    value: 'audio-to-waveform',
+    type: 'audio',
   },
 ]
 
