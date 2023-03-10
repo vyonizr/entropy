@@ -15,7 +15,7 @@ export default function Home() {
     VIDEO_EXTENSION_OPTIONS[0].value
   )
   const ffmpeg = createFFmpeg({
-    log: process.env.NODE_ENV === 'development',
+    log: import.meta.env.DEV,
     progress: ({ ratio }) => {
       setProgress(Math.round(ratio * 100))
     },
