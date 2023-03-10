@@ -114,6 +114,32 @@ export default function Home() {
     }
   }
 
+  async function videoToGIF(selectedFile: File) {
+    try {
+      setIsLoading(true)
+
+      if (selectedFile) {
+        const outputExtension = 'gif'
+        const outputName = generateOutputName(
+          selectedFile.name,
+          outputExtension
+        )
+        const method = `-vf fps=10,scale=-2:360:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse -loop 0`
+        const outputData = await runFFMPEG(selectedFile, outputName, method)
+        if (outputData) {
+          const url = URL.createObjectURL(
+            new Blob([outputData.buffer], { type: `image/${outputExtension}` })
+          )
+          triggerDownload(url, outputName)
+        }
+      }
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   function ConvertActions({ action, file }: ConvertActionProps) {
     switch (action) {
       case 'optimize-video-whatsapp':
@@ -123,6 +149,12 @@ export default function Home() {
             disabled={isLoading}
           >
             Optimize
+          </button>
+        )
+      case 'video-to-gif':
+        return (
+          <button onClick={() => videoToGIF(file)} disabled={isLoading}>
+            Convert to GIF
           </button>
         )
       case 'convert-video':
@@ -152,6 +184,8 @@ export default function Home() {
         )
     }
   }
+
+  console.log(mediaAction, '<== mediaAction')
 
   return (
     <main>

@@ -7,6 +7,10 @@ export const RADIO_OPTIONS = [
     label: 'Optimize Video for WhatsApp',
     value: 'optimize-video-whatsapp',
   },
+  {
+    label: 'Convert Video to GIF',
+    value: 'video-to-gif',
+  },
 ]
 
 export const VIDEO_EXTENSION_OPTIONS = [
