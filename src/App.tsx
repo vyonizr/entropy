@@ -1,7 +1,9 @@
 import React, { useMemo } from 'react'
-import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg'
+import { fetchFile } from '@ffmpeg/ffmpeg'
 import { RADIO_OPTIONS, VIDEO_EXTENSION_OPTIONS } from './constants'
 import { trimFilename, generateOutputName } from './utils'
+
+import useFFMPEG from './hooks/useFFMPEG'
 
 type ConvertActionProps = {
   action: string
@@ -9,18 +11,13 @@ type ConvertActionProps = {
 }
 
 export default function Home() {
-  const [progress, setProgress] = React.useState(0)
+  const { progress, ffmpeg } = useFFMPEG()
   const [mediaAction, setMediaAction] = React.useState(RADIO_OPTIONS[0])
   const [targetExtension, setTargetExtension] = React.useState(
     VIDEO_EXTENSION_OPTIONS[0].value
   )
-  const ffmpeg = createFFmpeg({
-    log: import.meta.env.DEV,
-    progress: ({ ratio }) => {
-      setProgress(Math.round(ratio * 100))
-    },
-  })
   const videoRef = React.useRef<HTMLVideoElement>(null)
+  const inputFileRef = React.useRef<HTMLInputElement>(null)
 
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = React.useState<string>('')
@@ -60,7 +57,10 @@ export default function Home() {
         outputName
       )
 
-      return ffmpeg.FS('readFile', outputName)
+      const writeData = ffmpeg.FS('readFile', outputName)
+      ffmpeg.exit()
+
+      return writeData
     }
   }
 
@@ -222,6 +222,13 @@ export default function Home() {
     [mediaAction.type]
   )
 
+  function handleClearFile() {
+    setSelectedFile(null)
+    if (inputFileRef !== null && inputFileRef.current !== null) {
+      inputFileRef.current.files = null
+    }
+  }
+
   return (
     <main>
       <form>
@@ -244,6 +251,7 @@ export default function Home() {
           the browser.
         </p>
         <input
+          ref={inputFileRef}
           type='file'
           accept={acceptedFileTypes}
           onChange={handleFileChange}
@@ -252,7 +260,7 @@ export default function Home() {
         {selectedFile && (
           <>
             {progress > 0 && <p>Transcoding... {progress}%</p>}
-            <button onClick={() => setSelectedFile(null)} disabled={isLoading}>
+            <button onClick={handleClearFile} disabled={isLoading}>
               Clear
             </button>
             <p>Selected file: {selectedFile.name}</p>
