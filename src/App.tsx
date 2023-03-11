@@ -224,41 +224,43 @@ export default function Home() {
 
   return (
     <main>
-      <ul>
-        {RADIO_OPTIONS.map((option) => (
-          <li key={option.value} onChange={() => setMediaAction(option)}>
-            <input
-              type='radio'
-              name='media-action'
-              value={option.label}
-              id={option.value}
-              checked={mediaAction.value === option.value}
-            />
-            <label htmlFor={option.value}>{option.label}</label>
-          </li>
-        ))}
-      </ul>
-      <p>
-        No files are uploaded to the server; the process is entirely done on the
-        browser.
-      </p>
-      <input
-        type='file'
-        accept={acceptedFileTypes}
-        onChange={handleFileChange}
-      />
+      <form>
+        <ul>
+          {RADIO_OPTIONS.map((option) => (
+            <li key={option.value} onChange={() => setMediaAction(option)}>
+              <input
+                type='radio'
+                name='media-action'
+                value={option.label}
+                id={option.value}
+                checked={mediaAction.value === option.value}
+              />
+              <label htmlFor={option.value}>{option.label}</label>
+            </li>
+          ))}
+        </ul>
+        <p>
+          No files are uploaded to the server; the process is entirely done on
+          the browser.
+        </p>
+        <input
+          type='file'
+          accept={acceptedFileTypes}
+          onChange={handleFileChange}
+        />
 
-      {selectedFile && (
-        <>
-          {progress > 0 && <p>Transcoding... {progress}%</p>}
-          <button onClick={() => setSelectedFile(null)} disabled={isLoading}>
-            Clear
-          </button>
-          <p>Selected file: {selectedFile.name}</p>
-          <ConvertActions action={mediaAction.value} file={selectedFile} />
-          <video src={previewUrl} controls ref={videoRef} />
-        </>
-      )}
+        {selectedFile && (
+          <>
+            {progress > 0 && <p>Transcoding... {progress}%</p>}
+            <button onClick={() => setSelectedFile(null)} disabled={isLoading}>
+              Clear
+            </button>
+            <p>Selected file: {selectedFile.name}</p>
+            <ConvertActions action={mediaAction.value} file={selectedFile} />
+            <video src={previewUrl} controls ref={videoRef} />
+          </>
+        )}
+      </form>
       <p>v{import.meta.env.PACKAGE_VERSION}</p>
     </main>
   )
