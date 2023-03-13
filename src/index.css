@@ -2,6 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'Inter';
+  font-weight: 400;
+  src: url('../public/fonts/Inter/Inter-Regular.ttf');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-weight: 500;
+  src: url('../public/fonts/Inter/Inter-Medium.ttf');
+}
+
+@font-face {
+  font-family: 'Red Hat Display';
+  font-weight: 700;
+  src: url('../public/fonts/Inter/Inter-Bold.ttf');
+}
+
+@font-face {
+  font-family: 'Red Hat Display';
+  font-weight: 900;
+  src: url('../public/fonts/Inter/Inter-Black.ttf');
+}
+
 body {
   @apply font-sans accent-primary text-primaryText;
 }

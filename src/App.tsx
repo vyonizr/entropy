@@ -47,20 +47,24 @@ export default function Home() {
     outputName: string,
     method = ''
   ) {
-    if (selectedFile) {
-      await ffmpeg.load()
-      ffmpeg.FS('writeFile', selectedFile.name, await fetchFile(selectedFile))
-      await ffmpeg.run(
-        '-i',
-        selectedFile.name,
-        ...method.split(' '),
-        outputName
-      )
+    try {
+      if (selectedFile) {
+        await ffmpeg.load()
+        ffmpeg.FS('writeFile', selectedFile.name, await fetchFile(selectedFile))
+        await ffmpeg.run(
+          '-i',
+          selectedFile.name,
+          ...method.split(' '),
+          outputName
+        )
 
-      const writeData = ffmpeg.FS('readFile', outputName)
-      ffmpeg.exit()
+        const writeData = ffmpeg.FS('readFile', outputName)
+        ffmpeg.exit()
 
-      return writeData
+        return writeData
+      }
+    } catch (error) {
+      console.error(error)
     }
   }
 
@@ -286,7 +290,7 @@ export default function Home() {
 
   return (
     <main className='flex flex-col items-center px-4 pt-4 pb-2'>
-      <h1 className='text-3xl'>Entropy</h1>
+      <h1 className='text-3xl font-black'>Entropy</h1>
       <h2 className='mt-4'>
         A web-based media converter entirely done on the browser{' '}
         <strong>
