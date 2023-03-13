@@ -17,15 +17,11 @@ function IconButton({
   primary = false,
 }: ButtonProps) {
   let className =
-    'w-12 h-12 flex justify-center items-center rounded-full disabled:bg-disabled disabled:text-white' +
+    'w-12 h-12 flex justify-center items-center disabled:bg-disabled disabled:text-white' +
     (additionalClass ? ` ${additionalClass}` : '') +
-    (primary
-      ? ' bg-primary text-white'
-      : ' bg-white text-primary border-primary border-2')
+    (primary ? ' bg-primary text-white' : ' bg-white text-primary')
 
   function Icon({ icon }: { icon: string }) {
-    // const primaryIcon = 'text-white'
-    const secondaryIcon = 'text-primary'
     switch (icon) {
       case 'trash':
       default:

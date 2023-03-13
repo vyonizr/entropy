@@ -7,7 +7,7 @@ export function generateOutputName(fileName: string, extension: string) {
   return `${trimFilename(fileName)}_entropy.${extension}`
 }
 
-export function truncateFileName(fileName: string, maxLength = 12): string {
+export function truncateFileName(fileName: string, maxLength = 24): string {
   if (fileName.length <= maxLength) {
     return fileName
   }

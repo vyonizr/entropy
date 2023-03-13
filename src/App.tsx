@@ -1,5 +1,7 @@
 import React, { useMemo } from 'react'
 import { fetchFile } from '@ffmpeg/ffmpeg'
+import Balancer from 'react-wrap-balancer'
+
 import { RADIO_OPTIONS, VIDEO_EXTENSION_OPTIONS } from './constants'
 import {
   truncateFileName,
@@ -244,7 +246,7 @@ export default function Home() {
         return (
           <>
             <select
-              className='w-full max-w-[20rem] mt-4 h-12 border-2 border-primary rounded-md'
+              className='w-full max-w-[22rem] mt-4 h-12 border-2 border-primary rounded-md'
               value={targetExtension}
               onChange={(event) => setTargetExtension(event.target.value)}
               placeholder='Select target format'
@@ -291,12 +293,14 @@ export default function Home() {
   return (
     <main className='flex flex-col items-center px-4 pt-4 pb-2'>
       <h1 className='text-3xl font-black'>Entropy</h1>
-      <h2 className='mt-4'>
-        A web-based media converter entirely done on the browser{' '}
-        <strong>
-          <em>without</em>{' '}
-        </strong>{' '}
-        file upload
+      <h2 className='text-lg mt-4 text-center'>
+        <Balancer>
+          A web-based media converter entirely done on the browser{' '}
+          <strong>
+            <em>without</em>{' '}
+          </strong>{' '}
+          file upload
+        </Balancer>
       </h2>
       <ul className='mt-4'>
         {RADIO_OPTIONS.map((option) => (
@@ -324,19 +328,19 @@ export default function Home() {
       </FileInput>
       {selectedFile && (
         <>
-          <p className='mt-4'>
-            Selected file:{' '}
-            <span className='font-mono text-sm'>
+          <div className='w-full max-w-[22rem] grid grid-cols-[1fr_3rem] items-center border-2 rounded border-gray-200 mt-2'>
+            <p className='px-2 font-mono text-sm'>
               {truncateFileName(selectedFile.name)}
-            </span>
-          </p>
-          <IconButton
-            icon='trash'
-            onClick={handleClearFile}
-            disabled={isLoading}
-          />
+            </p>
+            <IconButton
+              icon='trash'
+              onClick={handleClearFile}
+              disabled={isLoading}
+              className='border-l-2 border-gray-200 bg-gray-200'
+            />
+          </div>
           <video
-            className='object-cover max-h-52 mt-4'
+            className='object-cover max-h-52 max-w-[22rem] mt-4 rounded'
             src={previewUrl}
             controls
             ref={videoRef}
@@ -347,7 +351,7 @@ export default function Home() {
       {progress > 0 && (
         <>
           <p className='mt-2'>Transcoding... {progress}%</p>
-          <div className='w-full max-w-[20rem] h-2 bg-gray-300 rounded overflow-hidden'>
+          <div className='w-full max-w-[22rem] h-2 bg-gray-300 rounded overflow-hidden'>
             <div
               className='h-2 bg-primary'
               style={{ width: `${progress}%`, transitionDuration: '100ms' }}
