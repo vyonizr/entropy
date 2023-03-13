@@ -5,6 +5,11 @@ export const RADIO_OPTIONS = [
     type: 'video',
   },
   {
+    label: 'Rescale Video to 360p',
+    value: 'rescale-video',
+    type: 'video',
+  },
+  {
     label: 'Optimize Video for WhatsApp',
     value: 'optimize-video-whatsapp',
     type: 'video',

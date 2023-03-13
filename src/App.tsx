@@ -1,8 +1,15 @@
 import React, { useMemo } from 'react'
 import { fetchFile } from '@ffmpeg/ffmpeg'
 import { RADIO_OPTIONS, VIDEO_EXTENSION_OPTIONS } from './constants'
-import { trimFilename, generateOutputName } from './utils'
+import {
+  truncateFileName,
+  generateOutputName,
+  getFileExtension,
+  triggerDownload,
+} from './utils'
 
+import Button from './components/Button'
+import FileInput from './components/FileInput'
 import useFFMPEG from './hooks/useFFMPEG'
 
 type ConvertActionProps = {
@@ -23,8 +30,7 @@ export default function Home() {
   const [previewUrl, setPreviewUrl] = React.useState<string>('')
   const [isLoading, setIsLoading] = React.useState(false)
 
-  function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0]
+  function handleFileChange(file: File | null) {
     if (file) {
       setSelectedFile(file)
       const reader = new FileReader()
@@ -33,13 +39,6 @@ export default function Home() {
         setPreviewUrl(reader.result as string)
       }
     }
-  }
-
-  function triggerDownload(URL: string, fileName: string) {
-    const anchor = document.createElement('a')
-    anchor.href = URL
-    anchor.download = fileName
-    anchor.click()
   }
 
   async function runFFMPEG(
@@ -69,9 +68,10 @@ export default function Home() {
       setIsLoading(true)
 
       if (selectedFile) {
-        const outputName = `${trimFilename(
-          selectedFile.name
-        )}_entropy.${outputExtension}`
+        const outputName = generateOutputName(
+          selectedFile.name,
+          outputExtension
+        )
 
         const outputData = await runFFMPEG(selectedFile, outputName)
         if (outputData) {
@@ -166,28 +166,73 @@ export default function Home() {
     }
   }
 
+  async function rescaleVideoTo360p(selectedFile: File) {
+    try {
+      setIsLoading(true)
+
+      if (selectedFile) {
+        const outputExtension = getFileExtension(selectedFile.name)
+        const outputName = generateOutputName(
+          selectedFile.name,
+          outputExtension
+        )
+        const method = '-vf scale=-2:360'
+        const outputData = await runFFMPEG(selectedFile, outputName, method)
+        if (outputData) {
+          const url = URL.createObjectURL(
+            new Blob([outputData.buffer], { type: `video/${outputExtension}` })
+          )
+          triggerDownload(url, outputName)
+        }
+      }
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   function ConvertActions({ action, file }: ConvertActionProps) {
     switch (action) {
       case 'optimize-video-whatsapp':
         return (
-          <button
+          <Button
+            className='mt-4'
             onClick={() => convertVideoToWhatsapp(file)}
             disabled={isLoading}
           >
             Optimize
-          </button>
+          </Button>
+        )
+      case 'rescale-video':
+        return (
+          <Button
+            className='mt-4'
+            onClick={() => rescaleVideoTo360p(file)}
+            disabled={isLoading}
+          >
+            Rescale
+          </Button>
         )
       case 'video-to-gif':
         return (
-          <button onClick={() => videoToGIF(file)} disabled={isLoading}>
+          <Button
+            className='mt-4'
+            onClick={() => videoToGIF(file)}
+            disabled={isLoading}
+          >
             Convert to GIF
-          </button>
+          </Button>
         )
       case 'audio-to-waveform':
         return (
-          <button onClick={() => createWaveform(file)} disabled={isLoading}>
+          <Button
+            className='mt-4'
+            onClick={() => createWaveform(file)}
+            disabled={isLoading}
+          >
             Create waveform
-          </button>
+          </Button>
         )
       case 'convert-video':
       default:
@@ -206,12 +251,13 @@ export default function Home() {
                 ))}
               </select>
             </label>
-            <button
+            <Button
+              className='mt-4'
               onClick={() => convertVideo(file, targetExtension)}
               disabled={isLoading}
             >
               Convert
-            </button>
+            </Button>
           </>
         )
     }
@@ -229,46 +275,60 @@ export default function Home() {
     }
   }
 
-  return (
-    <main>
-      <form>
-        <ul>
-          {RADIO_OPTIONS.map((option) => (
-            <li key={option.value} onChange={() => setMediaAction(option)}>
-              <input
-                type='radio'
-                name='media-action'
-                value={option.label}
-                id={option.value}
-                checked={mediaAction.value === option.value}
-              />
-              <label htmlFor={option.value}>{option.label}</label>
-            </li>
-          ))}
-        </ul>
-        <p>
-          No files are uploaded to the server; the process is entirely done on
-          the browser.
-        </p>
-        <input
-          ref={inputFileRef}
-          type='file'
-          accept={acceptedFileTypes}
-          onChange={handleFileChange}
-        />
+  React.useEffect(() => {
+    handleClearFile()
+  }, [mediaAction.type])
 
-        {selectedFile && (
-          <>
-            {progress > 0 && <p>Transcoding... {progress}%</p>}
-            <button onClick={handleClearFile} disabled={isLoading}>
-              Clear
-            </button>
-            <p>Selected file: {selectedFile.name}</p>
-            <ConvertActions action={mediaAction.value} file={selectedFile} />
-            <video src={previewUrl} controls ref={videoRef} />
-          </>
-        )}
-      </form>
+  return (
+    <main className='flex flex-col items-center px-4'>
+      <h1 className='text-2xl'>Entropy</h1>
+      <h2 className='mt-4'>
+        A web-based multipurpose media converter entirely done on the browser
+        without file upload
+      </h2>
+      <ul className='mt-4'>
+        {RADIO_OPTIONS.map((option) => (
+          <li key={option.value}>
+            <input
+              type='radio'
+              name='media-action'
+              value={option.label}
+              id={option.value}
+              checked={mediaAction.value === option.value}
+              onChange={() => setMediaAction(option)}
+            />
+            <label htmlFor={option.value}>{option.label}</label>
+          </li>
+        ))}
+      </ul>
+      <FileInput
+        className='mt-4'
+        accept={acceptedFileTypes}
+        onChange={handleFileChange}
+      >
+        {`${selectedFile ? 'Change' : 'Select'} File`}
+      </FileInput>
+
+      {selectedFile && (
+        <>
+          {progress > 0 && <p>Transcoding... {progress}%</p>}
+          <p>{truncateFileName(selectedFile.name)}</p>
+          <video
+            className='object-cover max-h-52'
+            src={previewUrl}
+            controls
+            ref={videoRef}
+          />
+          <Button
+            className='mt-4'
+            onClick={handleClearFile}
+            disabled={isLoading}
+          >
+            Clear
+          </Button>
+          <ConvertActions action={mediaAction.value} file={selectedFile} />
+        </>
+      )}
       <p>v{import.meta.env.PACKAGE_VERSION}</p>
     </main>
   )
