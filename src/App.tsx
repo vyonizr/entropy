@@ -285,11 +285,11 @@ export default function Home() {
   }, [mediaAction.type])
 
   return (
-    <main className='flex flex-col items-center px-4'>
-      <h1 className='text-2xl'>Entropy</h1>
+    <main className='flex flex-col items-center px-4 pt-4 pb-2'>
+      <h1 className='text-3xl'>Entropy</h1>
       <h2 className='mt-4'>
-        A web-based multipurpose media converter entirely done on the browser
-        without file upload
+        A web-based media converter entirely done on the browser{' '}
+        <strong>without</strong> file upload
       </h2>
       <ul className='mt-4'>
         {RADIO_OPTIONS.map((option) => (
@@ -317,7 +317,6 @@ export default function Home() {
       </FileInput>
       {selectedFile && (
         <>
-          {progress > 0 && <p>Transcoding... {progress}%</p>}
           <p className='mt-4'>
             Selected file:{' '}
             <span className='font-mono text-sm'>
@@ -338,7 +337,18 @@ export default function Home() {
           <ConvertActions action={mediaAction.value} file={selectedFile} />
         </>
       )}
-      <p>v{import.meta.env.PACKAGE_VERSION}</p>
+      {progress > 0 && (
+        <>
+          <p className='mt-2'>Transcoding... {progress}%</p>
+          <div className='w-full max-w-[20rem] h-2 bg-gray-300 rounded overflow-hidden'>
+            <div
+              className='h-2 bg-primary'
+              style={{ width: `${progress}%`, transitionDuration: '100ms' }}
+            />
+          </div>
+        </>
+      )}
+      <p className='mt-4'>v{import.meta.env.PACKAGE_VERSION}</p>
     </main>
   )
 }
