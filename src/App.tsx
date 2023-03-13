@@ -9,6 +9,7 @@ import {
 } from './utils'
 
 import Button from './components/Button'
+import IconButton from './components/IconButton'
 import FileInput from './components/FileInput'
 import useFFMPEG from './hooks/useFFMPEG'
 
@@ -238,25 +239,29 @@ export default function Home() {
       default:
         return (
           <>
-            <label>
-              to:
-              <select
-                value={targetExtension}
-                onChange={(event) => setTargetExtension(event.target.value)}
-              >
-                {VIDEO_EXTENSION_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <select
+              className='w-full max-w-[20rem] mt-4 h-12 border-2 border-primary rounded-md'
+              value={targetExtension}
+              onChange={(event) => setTargetExtension(event.target.value)}
+              placeholder='Select target format'
+              disabled={isLoading}
+            >
+              {VIDEO_EXTENSION_OPTIONS.map((option) => (
+                <option
+                  key={option.value}
+                  value={option.value}
+                  className='h-12'
+                >
+                  {option.label}
+                </option>
+              ))}
+            </select>
             <Button
-              className='mt-4'
+              className='mt-2'
               onClick={() => convertVideo(file, targetExtension)}
               disabled={isLoading}
             >
-              Convert
+              Convert to {targetExtension.toUpperCase()}
             </Button>
           </>
         )
@@ -296,6 +301,7 @@ export default function Home() {
               id={option.value}
               checked={mediaAction.value === option.value}
               onChange={() => setMediaAction(option)}
+              disabled={isLoading}
             />
             <label htmlFor={option.value}>{option.label}</label>
           </li>
@@ -305,27 +311,30 @@ export default function Home() {
         className='mt-4'
         accept={acceptedFileTypes}
         onChange={handleFileChange}
+        disabled={isLoading}
       >
         {`${selectedFile ? 'Change' : 'Select'} File`}
       </FileInput>
-
       {selectedFile && (
         <>
           {progress > 0 && <p>Transcoding... {progress}%</p>}
-          <p>{truncateFileName(selectedFile.name)}</p>
+          <p className='mt-4'>
+            Selected file:{' '}
+            <span className='font-mono text-sm'>
+              {truncateFileName(selectedFile.name)}
+            </span>
+          </p>
+          <IconButton
+            icon='trash'
+            onClick={handleClearFile}
+            disabled={isLoading}
+          />
           <video
-            className='object-cover max-h-52'
+            className='object-cover max-h-52 mt-4'
             src={previewUrl}
             controls
             ref={videoRef}
           />
-          <Button
-            className='mt-4'
-            onClick={handleClearFile}
-            disabled={isLoading}
-          >
-            Clear
-          </Button>
           <ConvertActions action={mediaAction.value} file={selectedFile} />
         </>
       )}

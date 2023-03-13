@@ -7,6 +7,7 @@ type FileInputProps = {
   onChange: (file: File | null) => void
   accept?: string
   className?: string
+  disabled?: boolean
 }
 
 const FileInput: React.FC<FileInputProps> = ({
@@ -14,6 +15,7 @@ const FileInput: React.FC<FileInputProps> = ({
   onChange,
   accept,
   className: additionalClass,
+  disabled = false,
 }) => {
   const inputFileRef = React.useRef<HTMLInputElement>(null)
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -33,6 +35,7 @@ const FileInput: React.FC<FileInputProps> = ({
       <Button
         className={additionalClass ? ` ${additionalClass}` : ''}
         onClick={() => inputFileRef.current?.click()}
+        disabled={disabled}
       >
         {children}
       </Button>
