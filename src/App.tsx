@@ -289,7 +289,10 @@ export default function Home() {
       <h1 className='text-3xl'>Entropy</h1>
       <h2 className='mt-4'>
         A web-based media converter entirely done on the browser{' '}
-        <strong>without</strong> file upload
+        <strong>
+          <em>without</em>{' '}
+        </strong>{' '}
+        file upload
       </h2>
       <ul className='mt-4'>
         {RADIO_OPTIONS.map((option) => (
@@ -348,7 +351,17 @@ export default function Home() {
           </div>
         </>
       )}
-      <p className='mt-4'>v{import.meta.env.PACKAGE_VERSION}</p>
+      <p className='mt-4'>
+        v{import.meta.env.PACKAGE_VERSION} |{' '}
+        <a
+          href='https://github.com/vyonizr/entropy'
+          target='_blank'
+          rel='noopener noreferrer'
+          className='underline'
+        >
+          Github
+        </a>
+      </p>
     </main>
   )
 }
