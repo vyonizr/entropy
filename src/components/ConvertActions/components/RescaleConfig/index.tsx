@@ -43,12 +43,12 @@ export default function RescaleConfig({ file }: RescaleConfigProps) {
 
   return (
     <>
-      <ul className='mt-4 flex'>
+      <ul className="mt-4 flex">
         {RESCALE_OPTIONS.map((option) => (
-          <li key={option.value} className='mx-2'>
+          <li key={option.value} className="mx-2">
             <input
-              type='radio'
-              name='target-resolution'
+              type="radio"
+              name="target-resolution"
               value={option.label}
               id={option.value}
               checked={targetResolution === option.value}
@@ -60,12 +60,12 @@ export default function RescaleConfig({ file }: RescaleConfigProps) {
         ))}
       </ul>
       <Button
-        className='mt-4'
+        className="mt-4"
         onClick={() => rescaleVideo(file)}
         disabled={isLoading}
       >
         Rescale
       </Button>
     </>
-  )
+  );
 }

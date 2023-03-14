@@ -40,11 +40,11 @@ export default function WaveFormConfig({ file }: WaveFormConfigProps) {
 
   return (
     <Button
-      className='mt-4'
+      className="mt-4"
       onClick={() => createWaveform(file)}
       disabled={isLoading}
     >
       Create waveform
     </Button>
-  )
+  );
 }

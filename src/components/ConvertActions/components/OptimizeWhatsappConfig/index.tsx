@@ -41,11 +41,11 @@ export default function OptimizeWhatsappConfig({
   }
   return (
     <Button
-      className='mt-4'
+      className="mt-4"
       onClick={() => convertVideoToWhatsapp(file)}
       disabled={isLoading}
     >
       Optimize
     </Button>
-  )
+  );
 }

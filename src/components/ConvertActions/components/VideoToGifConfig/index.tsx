@@ -40,11 +40,11 @@ export default function VideoToGifConfig({ file }: VideoToGifConfigProps) {
 
   return (
     <Button
-      className='mt-4'
+      className="mt-4"
       onClick={() => videoToGIF(file)}
       disabled={isLoading}
     >
       Convert to GIF
     </Button>
-  )
+  );
 }
