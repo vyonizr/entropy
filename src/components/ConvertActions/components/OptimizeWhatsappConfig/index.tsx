@@ -2,25 +2,28 @@ import React from 'react'
 
 import Button from '@/components/Button'
 import { FFMPEGContext } from '@/App'
-import { getFileExtension, generateOutputName, triggerDownload } from '@/utils'
+import { generateOutputName, triggerDownload } from '@/utils'
 
-type RescaleConfigProps = {
+type OptimizeWhatsappConfigProps = {
   file: File | null
 }
 
-export default function RescaleConfig({ file }: RescaleConfigProps) {
+export default function OptimizeWhatsappConfig({
+  file,
+}: OptimizeWhatsappConfigProps) {
   const { isLoading, setIsLoading, runFFMPEG } = React.useContext(FFMPEGContext)
 
-  async function rescaleVideoTo360p(selectedFile: File | null) {
+  async function convertVideoToWhatsapp(selectedFile: File | null) {
     try {
       setIsLoading(true)
+
       if (selectedFile) {
-        const outputExtension = getFileExtension(selectedFile.name)
+        const outputExtension = 'mp4'
         const outputName = generateOutputName(
           selectedFile.name,
           outputExtension
         )
-        const method = '-vf scale=-2:360'
+        const method = `-vf scale=trunc(iw/2)*2:trunc(ih/2)*2 -c:v libx264 -profile:v baseline -level 3.0 -preset slow -crf 23 -c:a aac -b:a 128k -ac 2`
         const outputData = await runFFMPEG(selectedFile, outputName, method)
         if (outputData) {
           const blob = new Blob([outputData.buffer], {
@@ -36,14 +39,13 @@ export default function RescaleConfig({ file }: RescaleConfigProps) {
       setIsLoading(false)
     }
   }
-
   return (
     <Button
       className='mt-4'
-      onClick={() => rescaleVideoTo360p(file)}
+      onClick={() => convertVideoToWhatsapp(file)}
       disabled={isLoading}
     >
-      Rescale
+      Optimize
     </Button>
   )
 }

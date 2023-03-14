@@ -5,7 +5,7 @@ export const RADIO_OPTIONS = [
     type: 'video',
   },
   {
-    label: 'Rescale Video to 360p',
+    label: 'Rescale Video',
     value: 'rescale-video',
     type: 'video',
   },
