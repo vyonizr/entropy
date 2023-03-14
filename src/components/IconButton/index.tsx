@@ -17,21 +17,21 @@ function IconButton({
   primary = false,
 }: ButtonProps) {
   let className =
-    'w-12 h-12 flex justify-center items-center disabled:bg-disabled disabled:text-white' +
+    'w-12 h-12 flex justify-center items-center disabled:bg-gray-200' +
     (additionalClass ? ` ${additionalClass}` : '') +
-    (primary ? ' bg-primary text-white' : ' bg-white text-primary')
+    (primary ? ' bg-primary' : '')
 
-  function Icon({ icon }: { icon: string }) {
+  function Icon({ icon, color }: { icon: string; color: string | undefined }) {
     switch (icon) {
       case 'trash':
       default:
-        return <FaTrash />
+        return <FaTrash color={color} />
     }
   }
 
   return (
     <button className={className} onClick={onClick} disabled={disabled}>
-      <Icon icon={icon} />
+      <Icon icon={icon} color={disabled || primary ? 'white' : undefined} />
     </button>
   )
 }

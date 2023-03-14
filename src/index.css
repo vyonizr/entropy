@@ -3,27 +3,33 @@
 @tailwind utilities;
 
 @font-face {
+  font-family: 'Fira Code';
+  font-weight: 400;
+  src: url('../fonts/Fira\ Code/FiraCode-Regular.ttf');
+}
+
+@font-face {
   font-family: 'Inter';
   font-weight: 400;
-  src: url('../public/fonts/Inter/Inter-Regular.ttf');
+  src: url('../fonts/Inter/Inter-Regular.ttf');
 }
 
 @font-face {
   font-family: 'Inter';
   font-weight: 500;
-  src: url('../public/fonts/Inter/Inter-Medium.ttf');
+  src: url('../fonts/Inter/Inter-Medium.ttf');
 }
 
 @font-face {
-  font-family: 'Red Hat Display';
+  font-family: 'Inter';
   font-weight: 700;
-  src: url('../public/fonts/Inter/Inter-Bold.ttf');
+  src: url('../fonts/Inter/Inter-Bold.ttf');
 }
 
 @font-face {
-  font-family: 'Red Hat Display';
+  font-family: 'Inter';
   font-weight: 900;
-  src: url('../public/fonts/Inter/Inter-Black.ttf');
+  src: url('../fonts/Inter/Inter-Black.ttf');
 }
 
 body {

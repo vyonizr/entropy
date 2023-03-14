@@ -328,6 +328,12 @@ export default function Home() {
       </FileInput>
       {selectedFile && (
         <>
+          <video
+            className='object-cover max-h-52 max-w-[22rem] mt-4 rounded'
+            src={previewUrl}
+            controls
+            ref={videoRef}
+          />
           <div className='w-full max-w-[22rem] grid grid-cols-[1fr_3rem] items-center border-2 rounded border-gray-200 mt-2'>
             <p className='px-2 font-mono text-sm'>
               {truncateFileName(selectedFile.name)}
@@ -339,12 +345,6 @@ export default function Home() {
               className='border-l-2 border-gray-200 bg-gray-200'
             />
           </div>
-          <video
-            className='object-cover max-h-52 max-w-[22rem] mt-4 rounded'
-            src={previewUrl}
-            controls
-            ref={videoRef}
-          />
           <ConvertActions action={mediaAction.value} file={selectedFile} />
         </>
       )}
@@ -359,7 +359,7 @@ export default function Home() {
           </div>
         </>
       )}
-      <p className='mt-4'>
+      <footer className='mt-4'>
         v{import.meta.env.PACKAGE_VERSION} |{' '}
         <a
           href='https://github.com/vyonizr/entropy'
@@ -369,7 +369,7 @@ export default function Home() {
         >
           Github
         </a>
-      </p>
+      </footer>
     </main>
   )
 }
