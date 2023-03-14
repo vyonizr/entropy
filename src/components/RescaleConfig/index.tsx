@@ -1,12 +1,8 @@
 import React from 'react'
 
-import Button from '../Button'
-import { FFMPEGContext } from '../../App'
-import {
-  getFileExtension,
-  generateOutputName,
-  triggerDownload,
-} from '../../utils'
+import Button from '@/components/Button'
+import { FFMPEGContext } from '@/App'
+import { getFileExtension, generateOutputName, triggerDownload } from '@/utils'
 
 type RescaleConfigProps = {
   file: File | null

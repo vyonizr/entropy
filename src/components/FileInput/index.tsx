@@ -1,6 +1,6 @@
 import React, { ChangeEvent } from 'react'
 
-import Button from '../Button'
+import Button from '@/components/Button'
 
 type FileInputProps = {
   children: React.ReactNode
