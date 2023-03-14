@@ -33,3 +33,15 @@ export function triggerDownload(URL: string, fileName: string) {
   anchor.download = fileName
   anchor.click()
 }
+
+export function getFileSize(size: number) {
+  const units = ['B', 'KB', 'MB', 'GB', 'TB']
+  let i = 0
+
+  while (size >= 1024) {
+    size /= 1024
+    i++
+  }
+
+  return `${size.toFixed(2)} ${units[i]}`
+}
