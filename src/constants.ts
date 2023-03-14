@@ -47,4 +47,16 @@ export const VIDEO_EXTENSION_OPTIONS = [
     label: 'MKV',
     value: 'mkv',
   },
+  {
+    label: 'WEBM',
+    value: 'webm',
+  },
+  {
+    label: 'MPG',
+    value: 'mpg',
+  },
+  {
+    label: 'MPEG',
+    value: 'mpeg',
+  },
 ]
