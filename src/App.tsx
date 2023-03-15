@@ -33,6 +33,8 @@ export const FFMPEGContext = React.createContext({
   ): Promise<Uint8Array | undefined> => Promise.resolve(undefined),
 })
 
+const MAXIMUM_FILE_SIZE = '1GB'
+
 export default function Home() {
   const videoRef = React.useRef<HTMLVideoElement>(null)
   const inputFileRef = React.useRef<HTMLInputElement>(null)
@@ -43,12 +45,16 @@ export default function Home() {
   const [targetDownloadUrl, setTargetDownloadUrl] = React.useState('')
   const [timeRemaining, setTimeRemaining] = React.useState<string | null>(null)
   const [mediaAction, setMediaAction] = React.useState(RADIO_OPTIONS[0])
+  const [error, setError] = React.useState({
+    isError: false,
+    message: '',
+  })
 
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = React.useState<string>('')
 
   function handleFileChange(file: File | null) {
-    if (file) {
+    if (file && checkMaximumFileSize(file.size)) {
       setSelectedFile(file)
       const reader = new FileReader()
       reader.readAsDataURL(file)
@@ -56,6 +62,24 @@ export default function Home() {
         setPreviewUrl(reader.result as string)
       }
     }
+  }
+
+  function checkMaximumFileSize(fileSize: number) {
+    if (fileSize > 1073741824) {
+      setError({
+        isError: true,
+        message: `Maximum file size is ${MAXIMUM_FILE_SIZE}`,
+      })
+      handleClearFile()
+      return false
+    } else {
+      setError({
+        isError: false,
+        message: '',
+      })
+    }
+
+    return true
   }
 
   async function runFFMPEG(
@@ -185,8 +209,13 @@ export default function Home() {
           ) : (
             <FaFile className="mr-2" />
           )}
-          <span>{`${selectedFile ? 'Change' : 'Select'} File`}</span>
+          <span>{`${
+            selectedFile ? 'Change' : 'Select'
+          } File (max. ${MAXIMUM_FILE_SIZE})`}</span>
         </FileInput>
+        {error.isError && (
+          <p className="mt-2 text-red-500 text-center">{error.message}</p>
+        )}
         {selectedFile && (
           <>
             <video
