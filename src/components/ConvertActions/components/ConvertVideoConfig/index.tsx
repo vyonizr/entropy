@@ -1,4 +1,5 @@
 import React from 'react'
+import { FaRegPlayCircle } from 'react-icons/fa'
 
 import { FFMPEGContext } from '@/App'
 import Button from '@/components/Button'
@@ -11,7 +12,8 @@ type ConvertVideoConfigProps = {
 }
 
 export default function ConvertVideoConfig({ file }: ConvertVideoConfigProps) {
-  const { isLoading, setIsLoading, runFFMPEG } = React.useContext(FFMPEGContext)
+  const { isLoading, setIsLoading, runFFMPEG } =
+    React.useContext(FFMPEGContext)
   const [targetExtension, setTargetExtension] = React.useState(
     VIDEO_EXTENSION_OPTIONS[0].value
   )
@@ -48,25 +50,26 @@ export default function ConvertVideoConfig({ file }: ConvertVideoConfigProps) {
   return (
     <>
       <select
-        className="w-full max-w-[22rem] mt-4 h-12 border-2 border-primary rounded-md"
+        className="w-full max-w-[22rem] mt-4 h-12 border-2 border-primary rounded-md px-2"
         value={targetExtension}
         onChange={(event) => setTargetExtension(event.target.value)}
         placeholder="Select target format"
         disabled={isLoading}
       >
         {VIDEO_EXTENSION_OPTIONS.map((option) => (
-          <option key={option.value} value={option.value} className="h-12">
+          <option key={option.value} value={option.value} className="h-12 px-2">
             {option.label}
           </option>
         ))}
       </select>
       <Button
-        className="mt-2"
+        className="mt-2 flex items-center justify-center"
         onClick={() => convertVideo(file, targetExtension)}
         disabled={isLoading}
       >
-        Convert to {targetExtension.toUpperCase()}
+        <FaRegPlayCircle className="mr-2" />
+        <span> Convert to {targetExtension.toUpperCase()}</span>
       </Button>
     </>
-  );
+  )
 }

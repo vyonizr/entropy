@@ -1,4 +1,5 @@
 import React from 'react'
+import { FaRegPlayCircle } from 'react-icons/fa'
 
 import { FFMPEGContext } from '@/App'
 import Button from '@/components/Button'
@@ -21,7 +22,7 @@ export default function VideoToGifConfig({ file }: VideoToGifConfigProps) {
           selectedFile.name,
           outputExtension
         )
-        const method = `-vf fps=10,scale=-2:360:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse -loop 0`
+        const method = `-vf fps=10,scale=-2:360:flags=lanczos,split[s0][s1][s0]palettegen[p][s1][p]paletteuse -loop 0`
         const outputData = await runFFMPEG(selectedFile, outputName, method)
         if (outputData) {
           const blob = new Blob([outputData.buffer], {
@@ -40,11 +41,12 @@ export default function VideoToGifConfig({ file }: VideoToGifConfigProps) {
 
   return (
     <Button
-      className="mt-4"
+      className="mt-4 flex items-center justify-center"
       onClick={() => videoToGIF(file)}
       disabled={isLoading}
     >
-      Convert to GIF
+      <FaRegPlayCircle className="mr-2" />
+      <span>Convert to GIF</span>
     </Button>
-  );
+  )
 }

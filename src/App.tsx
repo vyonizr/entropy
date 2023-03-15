@@ -1,9 +1,10 @@
 import React, { useMemo } from 'react'
 import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg'
+import { FaFile, FaExchangeAlt } from 'react-icons/fa';
 import Balancer from 'react-wrap-balancer'
 
 import { RADIO_OPTIONS } from './constants'
-import { truncateFileName } from './utils'
+import { truncateFileName, getEmojiFromType } from './utils';
 
 import IconButton from './components/IconButton'
 import FileInput from './components/FileInput'
@@ -44,7 +45,7 @@ export default function Home() {
       reader.readAsDataURL(file);
       reader.onload = () => {
         setPreviewUrl(reader.result as string);
-      };
+      }
     }
   }
 
@@ -86,8 +87,8 @@ export default function Home() {
   }
 
   const acceptedFileTypes = useMemo(
-    () => (mediaAction.type === 'video' ? 'video/*' : 'audio/*'),
-    [mediaAction.type]
+    () => (mediaAction.inputType === 'video' ? 'video/*' : 'audio/*'),
+    [mediaAction.inputType]
   );
 
   function handleClearFile() {
@@ -99,7 +100,7 @@ export default function Home() {
 
   React.useEffect(() => {
     handleClearFile();
-  }, [mediaAction.type]);
+  }, [mediaAction.inputType]);
 
   return (
     <FFMPEGContext.Provider
@@ -138,17 +139,24 @@ export default function Home() {
                 onChange={() => setMediaAction(option)}
                 disabled={isLoading}
               />
-              <label htmlFor={option.value}>{option.label}</label>
+              <label htmlFor={option.value}>{`${getEmojiFromType(
+                option.icon
+              )} ${option.label}`}</label>
             </li>
           ))}
         </ul>
         <FileInput
-          className="mt-4"
+          className="mt-4 flex items-center justify-center"
           accept={acceptedFileTypes}
           onChange={handleFileChange}
           disabled={isLoading}
         >
-          {`${selectedFile ? 'Change' : 'Select'} File`}
+          {selectedFile ? (
+            <FaExchangeAlt className="mr-2" />
+          ) : (
+            <FaFile className="mr-2" />
+          )}
+          <span>{`${selectedFile ? 'Change' : 'Select'} File`}</span>
         </FileInput>
         {selectedFile && (
           <>

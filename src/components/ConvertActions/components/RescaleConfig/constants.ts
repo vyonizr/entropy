@@ -11,4 +11,8 @@ export const RESCALE_OPTIONS = [
     label: '720p',
     value: '720',
   },
+  {
+    label: 'Custom',
+    value: 'custom',
+  },
 ]

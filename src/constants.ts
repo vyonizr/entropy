@@ -2,61 +2,36 @@ export const RADIO_OPTIONS = [
   {
     label: 'Convert Video',
     value: 'convert-video',
-    type: 'video',
+    inputType: 'video',
+    outputType: 'video',
+    icon: 'video',
   },
   {
     label: 'Rescale Video',
     value: 'rescale-video',
-    type: 'video',
+    inputType: 'video',
+    outputType: 'video',
+    icon: 'video',
   },
   {
     label: 'Optimize Video for WhatsApp',
     value: 'optimize-video-whatsapp',
-    type: 'video',
+    inputType: 'video',
+    outputType: 'video',
+    icon: 'video',
   },
   {
     label: 'Convert Video to GIF',
     value: 'video-to-gif',
-    type: 'video',
+    inputType: 'video',
+    outputType: 'image',
+    icon: 'image',
   },
   {
     label: 'Draw Waveform from Audio',
     value: 'audio-to-waveform',
-    type: 'audio',
+    inputType: 'audio',
+    outputType: 'image',
+    icon: 'image',
   },
-]
-
-export const VIDEO_EXTENSION_OPTIONS = [
-  {
-    label: 'MP4',
-    value: 'mp4',
-  },
-  {
-    label: 'MOV',
-    value: 'mov',
-  },
-  {
-    label: 'WMV',
-    value: 'wmv',
-  },
-  {
-    label: 'AVI',
-    value: 'avi',
-  },
-  {
-    label: 'MKV',
-    value: 'mkv',
-  },
-  {
-    label: 'WEBM',
-    value: 'webm',
-  },
-  {
-    label: 'MPG',
-    value: 'mpg',
-  },
-  {
-    label: 'MPEG',
-    value: 'mpeg',
-  },
-]
+];

@@ -1,4 +1,5 @@
 import React from 'react'
+import { FaRegPlayCircle } from 'react-icons/fa'
 
 import { FFMPEGContext } from '@/App'
 import Button from '@/components/Button'
@@ -11,10 +12,15 @@ type RescaleConfigProps = {
 }
 
 export default function RescaleConfig({ file }: RescaleConfigProps) {
-  const { isLoading, setIsLoading, runFFMPEG } = React.useContext(FFMPEGContext)
+  const { isLoading, setIsLoading, runFFMPEG } =
+    React.useContext(FFMPEGContext)
   const [targetResolution, setTargetResolution] = React.useState(
     RESCALE_OPTIONS[0].value
   )
+  const [customResolution, setCustomResolution] = React.useState({
+    width: 0,
+    height: 0,
+  })
   async function rescaleVideo(selectedFile: File | null) {
     try {
       setIsLoading(true)
@@ -59,13 +65,43 @@ export default function RescaleConfig({ file }: RescaleConfigProps) {
           </li>
         ))}
       </ul>
+      {targetResolution === 'custom' && (
+        <div>
+          <input
+            type="number"
+            name="custom-width"
+            value={customResolution.width}
+            onChange={(e) =>
+              setCustomResolution({
+                ...customResolution,
+                width: parseInt(e.target.value),
+              })
+            }
+            disabled={isLoading}
+          />
+          <span className="mx-2">&times;</span>
+          <input
+            type="number"
+            name="custom-height"
+            value={customResolution.height}
+            onChange={(e) =>
+              setCustomResolution({
+                ...customResolution,
+                height: parseInt(e.target.value),
+              })
+            }
+            disabled={isLoading}
+          />
+        </div>
+      )}
       <Button
-        className="mt-4"
+        className="mt-4 flex items-center justify-center"
         onClick={() => rescaleVideo(file)}
         disabled={isLoading}
       >
-        Rescale
+        <FaRegPlayCircle className="mr-2" />
+        <span>Rescale</span>
       </Button>
     </>
-  );
+  )
 }

@@ -1,4 +1,5 @@
 import React from 'react'
+import { FaRegPlayCircle } from 'react-icons/fa'
 
 import Button from '@/components/Button'
 import { FFMPEGContext } from '@/App'
@@ -11,7 +12,8 @@ type OptimizeWhatsappConfigProps = {
 export default function OptimizeWhatsappConfig({
   file,
 }: OptimizeWhatsappConfigProps) {
-  const { isLoading, setIsLoading, runFFMPEG } = React.useContext(FFMPEGContext)
+  const { isLoading, setIsLoading, runFFMPEG } =
+    React.useContext(FFMPEGContext)
 
   async function convertVideoToWhatsapp(selectedFile: File | null) {
     try {
@@ -41,11 +43,12 @@ export default function OptimizeWhatsappConfig({
   }
   return (
     <Button
-      className="mt-4"
+      className="mt-4 flex items-center justify-center"
       onClick={() => convertVideoToWhatsapp(file)}
       disabled={isLoading}
     >
-      Optimize
+      <FaRegPlayCircle className="mr-2" />
+      <span>Optimize</span>
     </Button>
-  );
+  )
 }

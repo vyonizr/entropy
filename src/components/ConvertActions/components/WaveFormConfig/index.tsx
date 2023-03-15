@@ -1,4 +1,5 @@
 import React from 'react'
+import { FaRegPlayCircle } from 'react-icons/fa'
 
 import { FFMPEGContext } from '@/App'
 import Button from '@/components/Button'
@@ -9,7 +10,8 @@ type WaveFormConfigProps = {
 }
 
 export default function WaveFormConfig({ file }: WaveFormConfigProps) {
-  const { isLoading, setIsLoading, runFFMPEG } = React.useContext(FFMPEGContext)
+  const { isLoading, setIsLoading, runFFMPEG } =
+    React.useContext(FFMPEGContext)
 
   async function createWaveform(selectedFile: File | null) {
     try {
@@ -40,11 +42,12 @@ export default function WaveFormConfig({ file }: WaveFormConfigProps) {
 
   return (
     <Button
-      className="mt-4"
+      className="mt-4 flex items-center justify-center"
       onClick={() => createWaveform(file)}
       disabled={isLoading}
     >
-      Create waveform
+      <FaRegPlayCircle className="mr-2" />
+      <span>Create waveform</span>
     </Button>
-  );
+  )
 }
