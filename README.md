@@ -1,3 +1,9 @@
+<p align="center">
+  <a href="#">
+    <img alt="Entropy" width="128px" height="128px" src="https://raw.githubusercontent.com/vyonizr/entropy/main/docs/images/entropy-logo.svg">
+  </a>
+</p>
+
 # Entropy
 
 A web-based media converter entirely done on the browser, powered by [ffmpeg.wasm](https://github.com/ffmpegwasm/ffmpeg.wasm).
