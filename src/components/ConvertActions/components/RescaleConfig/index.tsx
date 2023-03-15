@@ -18,9 +18,10 @@ export default function RescaleConfig({ file }: RescaleConfigProps) {
     RESCALE_OPTIONS[0].value
   )
   const [customResolution, setCustomResolution] = React.useState({
-    width: 0,
-    height: 0,
+    width: '',
+    height: '',
   })
+
   async function rescaleVideo(selectedFile: File | null) {
     try {
       setIsLoading(true)
@@ -30,7 +31,11 @@ export default function RescaleConfig({ file }: RescaleConfigProps) {
           selectedFile.name,
           outputExtension
         )
-        const method = `-vf scale=-2:${targetResolution}`
+        let method = `-vf scale=-2:${targetResolution}`
+
+        if (targetResolution === 'custom') {
+          method = `-vf scale=${customResolution.width}:${customResolution.height},setsar=1:1`
+        }
         const outputData = await runFFMPEG(selectedFile, outputName, method)
         if (outputData) {
           const blob = new Blob([outputData.buffer], {
@@ -61,20 +66,24 @@ export default function RescaleConfig({ file }: RescaleConfigProps) {
               onChange={() => setTargetResolution(option.value)}
               disabled={isLoading}
             />
-            <label htmlFor={option.value}>{option.label}</label>
+            <label htmlFor={option.value} className="ml-1">
+              {option.label}
+            </label>
           </li>
         ))}
       </ul>
       {targetResolution === 'custom' && (
-        <div>
+        <div className="w-40 mt-2 flex justify-center items-center">
           <input
             type="number"
             name="custom-width"
+            placeholder="Width"
+            className="p-2 w-20 rounded border-2 border-gray-200"
             value={customResolution.width}
             onChange={(e) =>
               setCustomResolution({
                 ...customResolution,
-                width: parseInt(e.target.value),
+                width: parseInt(e.target.value).toString(),
               })
             }
             disabled={isLoading}
@@ -83,15 +92,18 @@ export default function RescaleConfig({ file }: RescaleConfigProps) {
           <input
             type="number"
             name="custom-height"
+            placeholder="Height"
+            className="p-2 w-20 rounded border-2 border-gray-200"
             value={customResolution.height}
             onChange={(e) =>
               setCustomResolution({
                 ...customResolution,
-                height: parseInt(e.target.value),
+                height: parseInt(e.target.value).toString(),
               })
             }
             disabled={isLoading}
           />
+          <p className="ml-2">px</p>
         </div>
       )}
       <Button
