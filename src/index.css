@@ -37,5 +37,5 @@ body {
 }
 
 a {
-  @apply text-primary dark:text-primaryTextDark;
+  @apply text-primary underline;
 }

@@ -123,11 +123,13 @@ export default function Home() {
     handleClearFile()
   }, [mediaAction.inputType])
 
-  const handleLoadedMetadata = () => {
-    if (videoRef.current) {
-      console.log(formatTime(videoRef.current.duration))
+  const progressText = React.useMemo(() => {
+    let text = `Processing... ${progress}%`
+    if (timeRemaining) {
+      text += ` (${timeRemaining})`
     }
-  }
+    return text
+  }, [progress, timeRemaining])
 
   return (
     <FFMPEGContext.Provider
@@ -192,7 +194,6 @@ export default function Home() {
               src={previewUrl}
               controls
               ref={videoRef}
-              onLoadedMetadata={handleLoadedMetadata}
             />
             <div className="mt-2 grid w-full max-w-[22rem] grid-cols-[1fr_3rem] items-center rounded border-2 border-gray-200">
               <p className="px-2 font-mono text-sm">
@@ -210,9 +211,7 @@ export default function Home() {
         )}
         {progress > 0 && (
           <>
-            <p className="mt-2">
-              Processing... {progress}%{timeRemaining && ` (${timeRemaining})`}
-            </p>
+            <p className="mt-2">{progressText}</p>
             <div className="h-2 w-full max-w-[22rem] overflow-hidden rounded bg-gray-300">
               <div
                 className="h-2 bg-primary"
@@ -227,7 +226,6 @@ export default function Home() {
             href="https://github.com/vyonizr/entropy"
             target="_blank"
             rel="noopener noreferrer"
-            className="underline"
           >
             Github
           </a>
