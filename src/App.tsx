@@ -90,7 +90,7 @@ export default function Home() {
     try {
       if (selectedFile) {
         const ffmpeg = createFFmpeg({
-          log: process.env.NODE_ENV === 'development',
+          log: import.meta.env.DEV,
           progress: ({ ratio }) => {
             setProgress(Math.round(ratio * 100))
           },
