@@ -98,7 +98,11 @@ export default function Home() {
 
         ffmpeg.setLogger(({ message }) => {
           const timeLog = parseFFmpegTimeLog(message)
-          if (timeLog && videoRef.current) {
+          if (
+            timeLog &&
+            videoRef.current &&
+            !isNaN(videoRef.current.duration)
+          ) {
             const { time, speed } = timeLog
             const videoDuration = videoRef.current.duration
             const timeRemaining = calculateTimeRemaining(
@@ -171,7 +175,7 @@ export default function Home() {
     >
       <main className="flex flex-col items-center px-4 pt-4 pb-2">
         <h1 className="text-3xl font-black">Entropy</h1>
-        <h2 className="mt-4 text-center text-lg">
+        <h2 className="mt-4 text-center text-lg w-full">
           <Balancer>
             A web-based media converter entirely done on the browser{' '}
             <strong>
