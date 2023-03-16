@@ -19,7 +19,9 @@ export default function ConvertActions({ action, file }: ConvertActionProps) {
     case 'rescale-video':
       return <RescaleConfig file={file} />
     case 'convert-audio':
-      return <ConvertAudioConfig file={file} />
+      return <ConvertAudioConfig file={file}  inputType="audio" />
+    case 'video-to-audio':
+      return <ConvertAudioConfig file={file} inputType="video" />
     case 'video-to-gif':
       return <VideoToGifConfig file={file} />
     case 'audio-to-waveform':

@@ -27,13 +27,13 @@ export const RADIO_OPTIONS = [
     outputType: 'audio',
     icon: 'audio',
   },
-  // {
-  //   label: 'Convert Video to Audio',
-  //   value: 'video-to-audio',
-  //   inputType: 'video',
-  //   outputType: 'audio',
-  //   icon: 'audio',
-  // },
+  {
+    label: 'Convert Video to Audio',
+    value: 'video-to-audio',
+    inputType: 'video',
+    outputType: 'audio',
+    icon: 'audio',
+  },
   {
     label: 'Convert Video to GIF',
     value: 'video-to-gif',

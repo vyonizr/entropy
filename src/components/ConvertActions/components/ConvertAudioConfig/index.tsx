@@ -8,9 +8,10 @@ import { AUDIO_EXTENSION_OPTIONS } from './constants'
 
 type ConvertAudioProps = {
   file: File | null
+  inputType: 'audio' | 'video'
 }
 
-function ConvertAudio({ file }: ConvertAudioProps) {
+function ConvertAudio({ file, inputType }: ConvertAudioProps) {
   const { isLoading, setIsLoading, runFFMPEG } = React.useContext(FFMPEGContext)
   const [targetExtension, setTargetExtension] = React.useState(
     AUDIO_EXTENSION_OPTIONS[0].value
@@ -29,9 +30,14 @@ function ConvertAudio({ file }: ConvertAudioProps) {
           outputExtension
         )
 
-        const method = AUDIO_EXTENSION_OPTIONS.find(
+        let method = AUDIO_EXTENSION_OPTIONS.find(
           (extension) => extension.value === outputExtension
         )?.audioMethod
+
+        let bypassVideoProcessingParam = '-vn'
+        if (inputType === 'video') {
+          method = `${bypassVideoProcessingParam} ${method}`
+        }
 
         const outputData = await runFFMPEG(selectedFile, outputName, method)
         if (outputData) {
