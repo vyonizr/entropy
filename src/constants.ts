@@ -14,6 +14,13 @@ export const RADIO_OPTIONS = [
     icon: 'video',
   },
   {
+    label: 'Flip Video',
+    value: 'flip-video',
+    inputType: 'video',
+    outputType: 'video',
+    icon: 'video',
+  },
+  {
     label: 'Optimize Video for WhatsApp',
     value: 'optimize-video-whatsapp',
     inputType: 'video',
