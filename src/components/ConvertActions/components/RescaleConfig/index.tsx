@@ -11,9 +11,11 @@ type RescaleConfigProps = {
   file: File | null
 }
 
+const VALID_DIMENSION_REGEX = new RegExp(/^[1-9]\d*$/)
+// const INVALID_DIMENSION_REGEX = new RegExp(/^(?!^[1-9]\d*$).*$/)
+
 export default function RescaleConfig({ file }: RescaleConfigProps) {
-  const { isLoading, setIsLoading, runFFMPEG } =
-    React.useContext(FFMPEGContext)
+  const { isLoading, setIsLoading, runFFMPEG } = React.useContext(FFMPEGContext)
   const [targetResolution, setTargetResolution] = React.useState(
     RESCALE_OPTIONS[0].value
   )
@@ -52,6 +54,25 @@ export default function RescaleConfig({ file }: RescaleConfigProps) {
     }
   }
 
+  const isCustomResolutionDisabled = React.useMemo(() => {
+    return (
+      targetResolution === 'custom' &&
+      (!VALID_DIMENSION_REGEX.test(customResolution.width) ||
+        !VALID_DIMENSION_REGEX.test(customResolution.height))
+    )
+  }, [targetResolution, customResolution])
+
+  function handleDimensionInput(e: React.ChangeEvent<HTMLInputElement>) {
+    const { name, value } = e.target
+
+    if (VALID_DIMENSION_REGEX.test(value) || value.length === 0) {
+      setCustomResolution({
+        ...customResolution,
+        [name]: value,
+      })
+    }
+  }
+
   return (
     <>
       <ul className="mt-4 flex">
@@ -76,32 +97,24 @@ export default function RescaleConfig({ file }: RescaleConfigProps) {
         <div className="w-40 mt-2 flex justify-center items-center">
           <input
             type="number"
-            name="custom-width"
+            name="width"
             placeholder="Width"
             className="p-2 w-20 rounded border-2 border-gray-200"
             value={customResolution.width}
-            onChange={(e) =>
-              setCustomResolution({
-                ...customResolution,
-                width: parseInt(e.target.value).toString(),
-              })
-            }
+            onChange={handleDimensionInput}
             disabled={isLoading}
+            min="1"
           />
           <span className="mx-2">&times;</span>
           <input
             type="number"
-            name="custom-height"
+            name="height"
             placeholder="Height"
             className="p-2 w-20 rounded border-2 border-gray-200"
             value={customResolution.height}
-            onChange={(e) =>
-              setCustomResolution({
-                ...customResolution,
-                height: parseInt(e.target.value).toString(),
-              })
-            }
+            onChange={handleDimensionInput}
             disabled={isLoading}
+            min="1"
           />
           <p className="ml-2">px</p>
         </div>
@@ -109,7 +122,7 @@ export default function RescaleConfig({ file }: RescaleConfigProps) {
       <Button
         className="mt-4 flex items-center justify-center"
         onClick={() => rescaleVideo(file)}
-        disabled={isLoading}
+        disabled={isLoading || isCustomResolutionDisabled}
       >
         <FaRegPlayCircle className="mr-2" />
         <span>Rescale</span>
