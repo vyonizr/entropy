@@ -5,6 +5,7 @@ import RescaleConfig from './components/RescaleConfig'
 import OptimizeWhatsappConfig from './components/OptimizeWhatsappConfig'
 import WaveFormConfig from './components/WaveFormConfig'
 import VideoToGifConfig from './components/VideoToGifConfig'
+import ConvertAudioConfig from './components/ConvertAudioConfig'
 
 type ConvertActionProps = {
   action: string
@@ -17,6 +18,8 @@ export default function ConvertActions({ action, file }: ConvertActionProps) {
       return <OptimizeWhatsappConfig file={file} />
     case 'rescale-video':
       return <RescaleConfig file={file} />
+    case 'convert-audio':
+      return <ConvertAudioConfig file={file} />
     case 'video-to-gif':
       return <VideoToGifConfig file={file} />
     case 'audio-to-waveform':

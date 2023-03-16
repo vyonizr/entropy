@@ -1,6 +1,6 @@
-import React, { useMemo } from 'react'
+import React from 'react'
 import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg'
-import { FaFile, FaExchangeAlt } from 'react-icons/fa';
+import { FaFile, FaExchangeAlt } from 'react-icons/fa'
 import Balancer from 'react-wrap-balancer'
 
 import { RADIO_OPTIONS } from './constants'
@@ -37,6 +37,7 @@ const MAXIMUM_FILE_SIZE = '1GB'
 
 export default function Home() {
   const videoRef = React.useRef<HTMLVideoElement>(null)
+  const audioRef = React.useRef<HTMLVideoElement>(null)
   const inputFileRef = React.useRef<HTMLInputElement>(null)
 
   const [isLoading, setIsLoading] = React.useState(false)
@@ -134,7 +135,7 @@ export default function Home() {
     }
   }
 
-  const acceptedFileTypes = useMemo(
+  const acceptedFileTypes = React.useMemo(
     () => (mediaAction.inputType === 'video' ? 'video/*' : 'audio/*'),
     [mediaAction.inputType]
   )
@@ -158,6 +159,12 @@ export default function Home() {
     }
     return text
   }, [progress, timeRemaining])
+
+  const pickFileText = React.useMemo(() => {
+    return `${
+      selectedFile ? 'Change' : 'Select'
+    } File (max. ${MAXIMUM_FILE_SIZE})`
+  }, [selectedFile])
 
   return (
     <FFMPEGContext.Provider
@@ -213,21 +220,30 @@ export default function Home() {
           ) : (
             <FaFile className="mr-2" />
           )}
-          <span>{`${
-            selectedFile ? 'Change' : 'Select'
-          } File (max. ${MAXIMUM_FILE_SIZE})`}</span>
+          <span>{pickFileText}</span>
         </FileInput>
         {error.isError && (
           <p className="mt-2 text-red-500 text-center">{error.message}</p>
         )}
         {selectedFile && (
           <>
-            <video
-              className="mt-4 max-h-52 max-w-[22rem] rounded object-cover"
-              src={previewUrl}
-              controls
-              ref={videoRef}
-            />
+            {selectedFile.type.includes('video') && (
+              <video
+                className="mt-4 max-h-52 max-w-[22rem] rounded object-cover"
+                src={previewUrl}
+                controls
+                ref={videoRef}
+              />
+            )}
+            {selectedFile.type.includes('audio') && (
+              <audio
+                controls
+                className="mt-4 max-h-52 max-w-[22rem] rounded"
+                src={previewUrl}
+                ref={audioRef}
+              />
+            )}
+
             <div className="mt-2 grid w-full max-w-[22rem] grid-cols-[1fr_3rem] items-center rounded border-2 border-gray-200">
               <p className="px-2 font-mono text-sm">
                 {truncateFileName(selectedFile.name)}

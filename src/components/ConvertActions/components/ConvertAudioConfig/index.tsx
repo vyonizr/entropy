@@ -4,23 +4,21 @@ import { FaRegPlayCircle } from 'react-icons/fa'
 import { FFMPEGContext } from '@/App'
 import Button from '@/components/Button'
 import { generateOutputName, triggerDownload } from '@/utils'
+import { AUDIO_EXTENSION_OPTIONS } from './constants'
 
-import { VIDEO_EXTENSION_OPTIONS } from './constants'
-
-type ConvertVideoConfigProps = {
+type ConvertAudioProps = {
   file: File | null
 }
 
-export default function ConvertVideoConfig({ file }: ConvertVideoConfigProps) {
-  const { isLoading, setIsLoading, runFFMPEG } =
-    React.useContext(FFMPEGContext)
+function ConvertAudio({ file }: ConvertAudioProps) {
+  const { isLoading, setIsLoading, runFFMPEG } = React.useContext(FFMPEGContext)
   const [targetExtension, setTargetExtension] = React.useState(
-    VIDEO_EXTENSION_OPTIONS[0].value
+    AUDIO_EXTENSION_OPTIONS[0].value
   )
 
   async function convertVideo(
     selectedFile: File | null,
-    outputExtension = VIDEO_EXTENSION_OPTIONS[0].value
+    outputExtension = AUDIO_EXTENSION_OPTIONS[0].value
   ) {
     try {
       setIsLoading(true)
@@ -31,10 +29,14 @@ export default function ConvertVideoConfig({ file }: ConvertVideoConfigProps) {
           outputExtension
         )
 
-        const outputData = await runFFMPEG(selectedFile, outputName)
+        const method = AUDIO_EXTENSION_OPTIONS.find(
+          (extension) => extension.value === outputExtension
+        )?.audioMethod
+
+        const outputData = await runFFMPEG(selectedFile, outputName, method)
         if (outputData) {
           const blob = new Blob([outputData.buffer], {
-            type: `video/${outputExtension}`,
+            type: `audio/${outputExtension}`,
           })
           const url = URL.createObjectURL(blob)
           triggerDownload(url, outputName)
@@ -56,7 +58,7 @@ export default function ConvertVideoConfig({ file }: ConvertVideoConfigProps) {
         placeholder="Select target format"
         disabled={isLoading}
       >
-        {VIDEO_EXTENSION_OPTIONS.map((option) => (
+        {AUDIO_EXTENSION_OPTIONS.map((option) => (
           <option key={option.value} value={option.value} className="h-12 px-2">
             {option.label}
           </option>
@@ -73,3 +75,5 @@ export default function ConvertVideoConfig({ file }: ConvertVideoConfigProps) {
     </>
   )
 }
+
+export default ConvertAudio
