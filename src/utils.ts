@@ -135,3 +135,8 @@ export function parseFFmpegTimeLog(
     speed: speedAsNumber,
   }
 }
+
+// capitalize first letter in text
+export function capitalizeFirstLetter(text: string) {
+  return text.charAt(0).toUpperCase() + text.slice(1)
+}

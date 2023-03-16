@@ -1,13 +1,13 @@
 import React from 'react'
 import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg'
-import { FaFile, FaExchangeAlt } from 'react-icons/fa'
+import { FaExchangeAlt, FaFileVideo, FaFileAudio } from 'react-icons/fa'
 import Balancer from 'react-wrap-balancer'
 
 import { RADIO_OPTIONS } from './constants'
 import {
   truncateFileName,
   getEmojiFromType,
-  formatTime,
+  capitalizeFirstLetter,
   parseFFmpegTimeLog,
   calculateTimeRemaining,
   formatTimeRemaining,
@@ -161,10 +161,11 @@ export default function Home() {
   }, [progress, timeRemaining])
 
   const pickFileText = React.useMemo(() => {
+    const fileType = capitalizeFirstLetter(mediaAction.inputType)
     return `${
       selectedFile ? 'Change' : 'Select'
-    } File (max. ${MAXIMUM_FILE_SIZE})`
-  }, [selectedFile])
+    } ${fileType} (max. ${MAXIMUM_FILE_SIZE})`
+  }, [mediaAction.inputType, selectedFile])
 
   return (
     <FFMPEGContext.Provider
@@ -216,11 +217,13 @@ export default function Home() {
           disabled={isLoading}
         >
           {selectedFile ? (
-            <FaExchangeAlt className="mr-2" />
+            <FaExchangeAlt />
+          ) : mediaAction.inputType === 'video' ? (
+            <FaFileVideo />
           ) : (
-            <FaFile className="mr-2" />
+            <FaFileAudio />
           )}
-          <span>{pickFileText}</span>
+          <span className="ml-2">{pickFileText}</span>
         </FileInput>
         {error.isError && (
           <p className="mt-2 text-red-500 text-center">{error.message}</p>
