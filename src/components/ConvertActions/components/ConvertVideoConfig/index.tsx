@@ -50,14 +50,18 @@ export default function ConvertVideoConfig({ file }: ConvertVideoConfigProps) {
   return (
     <>
       <select
-        className="w-full max-w-[22rem] mt-4 h-12 border-2 border-primary rounded-md px-2"
+        className="w-full max-w-[22rem] mt-4 h-12 border-2 border-primary rounded-md px-2 text-primary"
         value={targetExtension}
         onChange={(event) => setTargetExtension(event.target.value)}
         placeholder="Select target format"
         disabled={isLoading}
       >
         {VIDEO_EXTENSION_OPTIONS.map((option) => (
-          <option key={option.value} value={option.value} className="h-12 px-2">
+          <option
+            key={option.value}
+            value={option.value}
+            className="h-12 px-2 text-primary"
+          >
             {option.label}
           </option>
         ))}
