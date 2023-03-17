@@ -188,7 +188,7 @@ export default function Home() {
         runFFMPEG,
       }}
     >
-      <nav className="z-10 sticky bg-primary h-12 flex justify-between w-full items-center p-4 h-16">
+      <nav className="z-10 sticky top-0 bg-primary h-12 flex justify-between w-full items-center p-4 h-16">
         <a href="/" className="flex items-center">
           <img src="/entropy-logo.svg" alt="Entropy logo" className="h-8" />
           <h1 className="ml-3 text-2xl font-['Lexend_Deca'] font-medium text-white invisible md:visible">
