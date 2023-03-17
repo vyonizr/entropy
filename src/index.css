@@ -43,7 +43,7 @@ html {
 }
 
 body {
-  @apply font-sans accent-primary text-primaryText relative min-h-full pb-12;
+  @apply font-sans accent-primary text-primaryText relative min-h-full pb-12 bg-white dark:bg-gray-800 dark:text-white;
 }
 
 a {

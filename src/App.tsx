@@ -283,7 +283,7 @@ export default function Home() {
                 icon="trash"
                 onClick={handleClearFile}
                 disabled={isLoading}
-                className="border-l-2 border-gray-200 bg-gray-200"
+                className="border-l-2 border-gray-200 bg-gray-200 text-gray-600"
               />
             </div>
             <ConvertActions action={mediaAction.value} file={selectedFile} />
