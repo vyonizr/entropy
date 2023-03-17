@@ -1,6 +1,12 @@
 export function trimFilename(filename: string) {
-  const lastDot = filename.lastIndexOf('.')
-  return filename.substring(0, lastDot)
+  const dotIndex = filename.lastIndexOf('.')
+  if (dotIndex === -1) {
+    return filename
+  } else if (dotIndex === 0) {
+    return ''
+  }
+
+  return filename.substring(0, dotIndex)
 }
 
 export function generateOutputName(fileName: string, extension: string) {
