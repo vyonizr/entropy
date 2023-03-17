@@ -14,7 +14,7 @@ function Button({
   className: additionalClass,
 }: ButtonProps) {
   let className =
-    'w-full max-w-[22rem] h-12 font-medium bg-primary p-2 text-white rounded disabled:bg-disabled' +
+    'h-12 font-medium bg-primary p-2 text-white rounded disabled:bg-disabled' +
     (additionalClass ? ` ${additionalClass}` : '')
 
   return (

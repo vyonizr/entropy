@@ -120,7 +120,7 @@ export default function RescaleConfig({ file }: RescaleConfigProps) {
         </div>
       )}
       <Button
-        className="mt-4 flex items-center justify-center"
+        className="w-full max-w-[22rem] mt-4 flex items-center justify-center"
         onClick={() => rescaleVideo(file)}
         disabled={isLoading || isCustomResolutionDisabled}
       >

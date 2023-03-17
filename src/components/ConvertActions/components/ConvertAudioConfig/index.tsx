@@ -71,7 +71,7 @@ function ConvertAudio({ file, inputType }: ConvertAudioProps) {
         ))}
       </select>
       <Button
-        className="mt-2 flex items-center justify-center"
+        className="w-full max-w-[22rem] mt-2 flex items-center justify-center"
         onClick={() => convertVideo(file, targetExtension)}
         disabled={isLoading}
       >

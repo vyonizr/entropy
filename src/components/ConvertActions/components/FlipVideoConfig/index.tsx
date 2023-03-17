@@ -69,7 +69,7 @@ export default function FlipVideoConfig({ file }: FlipVideoConfigProps) {
         ))}
       </ul>
       <Button
-        className="mt-4 flex items-center justify-center"
+        className="w-full max-w-[22rem] mt-4 flex items-center justify-center"
         onClick={() => flipVideo(file)}
         disabled={isLoading}
       >

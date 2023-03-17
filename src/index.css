@@ -32,8 +32,18 @@
   src: url('../fonts/Inter/Inter-Black.ttf');
 }
 
+@font-face {
+  font-family: 'Lexend Deca';
+  font-weight: 500;
+  src: url('../fonts/Lexend\ Deca/LexendDeca-Medium.ttf');
+}
+
+html {
+  @apply h-screen;
+}
+
 body {
-  @apply font-sans accent-primary text-primaryText;
+  @apply font-sans accent-primary text-primaryText relative min-h-full pb-12;
 }
 
 a {

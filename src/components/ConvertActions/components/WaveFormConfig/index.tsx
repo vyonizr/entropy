@@ -42,7 +42,7 @@ export default function WaveFormConfig({ file }: WaveFormConfigProps) {
 
   return (
     <Button
-      className="mt-4 flex items-center justify-center"
+      className="w-full max-w-[22rem] mt-4 flex items-center justify-center"
       onClick={() => createWaveform(file)}
       disabled={isLoading}
     >

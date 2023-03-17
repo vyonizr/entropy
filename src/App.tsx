@@ -1,6 +1,11 @@
 import React from 'react'
 import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg'
-import { FaExchangeAlt, FaFileVideo, FaFileAudio } from 'react-icons/fa'
+import {
+  FaExchangeAlt,
+  FaFileVideo,
+  FaFileAudio,
+  FaGithub,
+} from 'react-icons/fa'
 import Balancer from 'react-wrap-balancer'
 
 import { RADIO_OPTIONS } from './constants'
@@ -13,6 +18,7 @@ import {
   formatTimeRemaining,
 } from './utils'
 
+import Button from './components/Button'
 import IconButton from './components/IconButton'
 import FileInput from './components/FileInput'
 import ConvertActions from './components/ConvertActions'
@@ -39,6 +45,7 @@ export default function Home() {
   const videoRef = React.useRef<HTMLVideoElement>(null)
   const audioRef = React.useRef<HTMLVideoElement>(null)
   const inputFileRef = React.useRef<HTMLInputElement>(null)
+  const githubIconRef = React.useRef<HTMLAnchorElement>(null)
 
   const [isLoading, setIsLoading] = React.useState(false)
   const [progress, setProgress] = React.useState(0)
@@ -181,15 +188,36 @@ export default function Home() {
         runFFMPEG,
       }}
     >
-      <main className="flex flex-col items-center px-4 pt-4 pb-2">
-        <h1 className="text-3xl font-black">Entropy</h1>
-        <h2 className="mt-4 text-center text-lg w-full">
+      <nav className="z-10 sticky bg-primary h-12 flex justify-between w-full items-center p-4 h-16">
+        <a href="/" className="flex items-center">
+          <img src="/entropy-logo.svg" alt="Entropy logo" className="h-8" />
+          <h1 className="ml-3 text-2xl font-['Lexend_Deca'] font-medium text-white invisible md:visible">
+            Entropy
+          </h1>
+        </a>
+        <button
+          className="h-12 w-12 flex justify-center items-center rounded-full text-white/[.75] hover:text-white hover:bg-white/[.1]"
+          onClick={() => githubIconRef.current?.click()}
+        >
+          <a
+            ref={githubIconRef}
+            href="https://github.com/vyonizr/entropy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-inherit hover:text-inherit"
+          >
+            <FaGithub className="text-3xl text-inherit hover:text-inherit" />
+          </a>
+        </button>
+      </nav>
+      <main className="flex flex-col items-center px-4 pt-4">
+        <h1 className="text-5xl font-medium block md:hidden font-['Lexend_Deca'] ">
+          Entropy
+        </h1>
+        <h2 className="mt-4 md:mt-2 text-center text-lg w-[24rem] md:w-[32rem] md:text-2xl">
           <Balancer>
-            A web-based media converter entirely done on the browser{' '}
-            <strong>
-              <em>without</em>{' '}
-            </strong>{' '}
-            file upload
+            A web-based media converter entirely done on the browser.{' '}
+            <strong>No upload needed.</strong>
           </Balancer>
         </h2>
         <ul className="mt-4">
@@ -211,7 +239,7 @@ export default function Home() {
           ))}
         </ul>
         <FileInput
-          className="mt-4 flex items-center justify-center"
+          className="w-full max-w-[22rem] mt-4 flex items-center justify-center"
           accept={acceptedFileTypes}
           onChange={handleFileChange}
           disabled={isLoading}
@@ -272,17 +300,10 @@ export default function Home() {
             </div>
           </>
         )}
-        <footer className="mt-4">
-          v{import.meta.env.PACKAGE_VERSION} |{' '}
-          <a
-            href="https://github.com/vyonizr/entropy"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Github
-          </a>
-        </footer>
       </main>
+      <footer className="w-full absolute bottom-0 flex justify-center items-center h-8">
+        v{import.meta.env.PACKAGE_VERSION}
+      </footer>
     </FFMPEGContext.Provider>
   )
 }
