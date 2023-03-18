@@ -12,6 +12,9 @@ A web-based media converter entirely done on the browser, powered by [ffmpeg.was
 
 1. Convert video
 2. Rescale video
-3. Optimize video to WhatsApp
-4. Convert video to GIF
-5. Create waveform from audio
+3. Flip video
+4. Optimize video to WhatsApp
+5. Convert audio
+6. Convert video to audio
+7. Convert video to GIF
+8. Create waveform from audio
