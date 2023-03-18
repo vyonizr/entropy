@@ -53,28 +53,34 @@ export function getFileSize(size: number) {
 }
 
 export function getEmojiFromType(type: string): string {
-  type TEmojiMap = {
-    [key: string]: string
+  switch (type) {
+    case 'video':
+      return '🎥'
+    case 'audio':
+      return '🎵'
+    case 'image':
+      return '🖼️'
+    default:
+      return '📁'
   }
-
-  const emojiMap: TEmojiMap = {
-    video: '🎥',
-    audio: '🎵',
-    image: '🖼️',
-  }
-
-  return emojiMap[type]
 }
 
 // This function formats a number of seconds into a string formatted as "HH:MM:SS.mmm".
 // It takes the number of seconds as an input.
 export function formatTime(time: number): string {
+  // should handle if time is negative
+  if (time < 0) {
+    throw new Error('Time cannot be negative')
+  } else if (isNaN(time)) {
+    throw new Error('Time must be a number')
+  }
+
   // Calculate the number of hours, minutes, and seconds.
   const hours = Math.floor(time / 3600)
   const minutes = Math.floor((time % 3600) / 60)
   const seconds = Math.floor(time % 60)
   // Calculate the number of milliseconds.
-  const milliseconds = Math.floor((time % 1) * 1000)
+  const milliseconds = Math.round((time % 1) * 1000)
 
   // Return a string formatted as "HH:MM:SS.mmm".
   return `${hours.toString().padStart(2, '0')}:${minutes
@@ -89,24 +95,41 @@ export function calculateTimeRemaining(
   currentDuration: number,
   processSpeed: number
 ): number {
+  // should throw error if total is negative
+  if (totalDuration < 0) {
+    throw new Error('Total duration cannot be negative')
+  } else if (isNaN(totalDuration)) {
+    throw new Error('Total duration must be a number')
+  }
+  // should return 0 if current duration is equal or greater than total duration
+  if (currentDuration >= totalDuration) {
+    return 0
+  }
+
   const timeRemaining = (totalDuration - currentDuration) / processSpeed
   return timeRemaining
 }
 
-export function formatTimeRemaining(timeRemaining: number): string {
-  const hours = Math.floor(timeRemaining / 3600)
-  const minutes = Math.floor((timeRemaining % 3600) / 60)
-  const seconds = Math.ceil(timeRemaining % 60)
+export function formatTimeRemaining(seconds: number): string {
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+  const remainingSeconds = seconds % 60
+
+  let formattedTime = ''
 
   if (hours > 0) {
-    return `${hours}h ${minutes}m`
+    formattedTime += `${hours}h `
   }
 
   if (minutes > 0) {
-    return `${minutes}m ${seconds}s`
+    formattedTime += `${minutes}m `
   }
 
-  return `${seconds}s`
+  if (remainingSeconds > 0 || formattedTime === '') {
+    formattedTime += `${remainingSeconds}s`
+  }
+
+  return formattedTime.trim()
 }
 
 type TParseFFmpegOutput = {
