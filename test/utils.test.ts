@@ -6,6 +6,8 @@ import {
   formatTime,
   calculateTimeRemaining,
   formatTimeRemaining,
+  parseFFmpegTimeLog,
+  capitalizeFirstLetter,
 } from '../src/utils'
 
 describe('trimFilename', () => {
@@ -118,5 +120,40 @@ describe('formatTimeRemaining', () => {
     expect(formatTimeRemaining(3600)).toBe('1h')
     expect(formatTimeRemaining(3601)).toBe('1h 1s')
     expect(formatTimeRemaining(3661)).toBe('1h 1m 1s')
+  })
+})
+
+describe('parseFFmpegTimeLog', () => {
+  it('should parse ffmpeg time log correctly', () => {
+    expect(
+      parseFFmpegTimeLog(
+        'frame=  138 fps= 90 q=31.0 size=       0kB time=00:00:01.41 bitrate=   0.3kbits/s speed=0.919x'
+      )
+    ).toEqual({
+      time: 1.41,
+      speed: 0.919,
+    })
+    expect(
+      parseFFmpegTimeLog(
+        'frame=  147 fps= 67 q=-1.0 Lsize=      49kB time=00:00:02.40 bitrate= 167.1kbits/s speed= 1.1x'
+      )
+    ).toEqual({
+      time: 2.4,
+      speed: 1.1,
+    })
+  })
+
+  it('should return null if log message is undefined', () => {
+    expect(parseFFmpegTimeLog(undefined)).toBeNull()
+  })
+})
+
+describe('capitalizeFirstLetter', () => {
+  it('should capitalize first letter', () => {
+    expect(capitalizeFirstLetter('foo')).toBe('Foo')
+  })
+
+  it('should return empty string if input is empty string', () => {
+    expect(capitalizeFirstLetter('')).toBe('')
   })
 })
