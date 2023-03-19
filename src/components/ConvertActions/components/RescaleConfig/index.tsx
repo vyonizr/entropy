@@ -36,7 +36,7 @@ export default function RescaleConfig({ file }: RescaleConfigProps) {
         let method = `-vf scale=-2:${targetResolution}`
 
         if (targetResolution === 'custom') {
-          method = `-vf scale=${customResolution.width}:${customResolution.height},setsar=1:1`
+          method = `-vf scale=trunc(${customResolution.width}/2)*2:trunc(${customResolution.height}/2)*2`
         }
         const outputData = await runFFMPEG(selectedFile, outputName, method)
         if (outputData) {
