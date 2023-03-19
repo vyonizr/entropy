@@ -36,7 +36,7 @@ export default function RescaleConfig({ file }: RescaleConfigProps) {
         let method = `-vf scale=-2:${targetResolution}`
 
         if (targetResolution === 'custom') {
-          method = `-vf scale=${customResolution.width}:${customResolution.height},setsar=1:1`
+          method = `-vf scale=trunc(${customResolution.width}/2)*2:trunc(${customResolution.height}/2)*2`
         }
         const outputData = await runFFMPEG(selectedFile, outputName, method)
         if (outputData) {
@@ -99,7 +99,7 @@ export default function RescaleConfig({ file }: RescaleConfigProps) {
             type="number"
             name="width"
             placeholder="Width"
-            className="p-2 w-20 rounded border-2 border-gray-200"
+            className="p-2 w-24 rounded border-2 border-gray-200"
             value={customResolution.width}
             onChange={handleDimensionInput}
             disabled={isLoading}
@@ -110,7 +110,7 @@ export default function RescaleConfig({ file }: RescaleConfigProps) {
             type="number"
             name="height"
             placeholder="Height"
-            className="p-2 w-20 rounded border-2 border-gray-200"
+            className="p-2 w-24 rounded border-2 border-gray-200"
             value={customResolution.height}
             onChange={handleDimensionInput}
             disabled={isLoading}

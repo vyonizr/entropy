@@ -49,3 +49,7 @@ body {
 a {
   @apply text-primary underline;
 }
+
+input, select, option {
+  @apply text-primaryText;
+}
