@@ -90,6 +90,7 @@ describe('calculateTimeRemaining', () => {
     expect(calculateTimeRemaining(100, 50, 1)).toBe(50)
     expect(calculateTimeRemaining(100, 50, 2)).toBe(25)
     expect(calculateTimeRemaining(100, 50, 0.5)).toBe(100)
+    expect(calculateTimeRemaining(75, 4.34, 0.3)).toBe(236)
   })
 
   it('should throw error if total duration is negative', () => {
