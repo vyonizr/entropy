@@ -107,7 +107,7 @@ export function calculateTimeRemaining(
   }
 
   const timeRemaining = (totalDuration - currentDuration) / processSpeed
-  return timeRemaining
+  return Math.round(timeRemaining)
 }
 
 export function formatTimeRemaining(seconds: number): string {

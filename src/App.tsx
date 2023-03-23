@@ -18,7 +18,6 @@ import {
   formatTimeRemaining,
 } from './utils'
 
-import Button from './components/Button'
 import IconButton from './components/IconButton'
 import FileInput from './components/FileInput'
 import ConvertActions from './components/ConvertActions'
