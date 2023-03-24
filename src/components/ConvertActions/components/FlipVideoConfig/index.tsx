@@ -13,13 +13,15 @@ type FlipVideoConfigProps = {
 }
 
 export default function FlipVideoConfig({ file }: FlipVideoConfigProps) {
-  const { isLoading, setIsLoading, runFFMPEG } = React.useContext(FFMPEGContext)
+  const { isLoading, setIsLoading, runFFMPEG, setTargetFileSize } =
+    React.useContext(FFMPEGContext)
 
   const [flipMode, setFlipMode] = React.useState(FLIP_OPTIONS[0].value)
 
   async function flipVideo(selectedFile: File | null) {
     try {
       setIsLoading(true)
+      setTargetFileSize(0)
 
       if (selectedFile) {
         const outputExtension = getFileExtension(selectedFile.name)
@@ -33,6 +35,7 @@ export default function FlipVideoConfig({ file }: FlipVideoConfigProps) {
           const blob = new Blob([outputData.buffer], {
             type: `video/${outputExtension}`,
           })
+          setTargetFileSize(blob.size)
           const url = URL.createObjectURL(blob)
           triggerDownload(url, outputName)
         }

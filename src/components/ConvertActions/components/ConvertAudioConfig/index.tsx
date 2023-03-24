@@ -12,7 +12,8 @@ type ConvertAudioProps = {
 }
 
 function ConvertAudio({ file, inputType }: ConvertAudioProps) {
-  const { isLoading, setIsLoading, runFFMPEG } = React.useContext(FFMPEGContext)
+  const { isLoading, setIsLoading, runFFMPEG, setTargetFileSize } =
+    React.useContext(FFMPEGContext)
   const [targetExtension, setTargetExtension] = React.useState(
     AUDIO_EXTENSION_OPTIONS[0].value
   )
@@ -23,6 +24,7 @@ function ConvertAudio({ file, inputType }: ConvertAudioProps) {
   ) {
     try {
       setIsLoading(true)
+      setTargetFileSize(0)
 
       if (selectedFile) {
         const outputName = generateOutputName(
@@ -44,6 +46,7 @@ function ConvertAudio({ file, inputType }: ConvertAudioProps) {
           const blob = new Blob([outputData.buffer], {
             type: `audio/${outputExtension}`,
           })
+          setTargetFileSize(blob.size)
           const url = URL.createObjectURL(blob)
           triggerDownload(url, outputName)
         }

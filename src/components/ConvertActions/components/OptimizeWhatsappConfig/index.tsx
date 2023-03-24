@@ -12,12 +12,13 @@ type OptimizeWhatsappConfigProps = {
 export default function OptimizeWhatsappConfig({
   file,
 }: OptimizeWhatsappConfigProps) {
-  const { isLoading, setIsLoading, runFFMPEG } =
+  const { isLoading, setIsLoading, runFFMPEG, setTargetFileSize } =
     React.useContext(FFMPEGContext)
 
   async function convertVideoToWhatsapp(selectedFile: File | null) {
     try {
       setIsLoading(true)
+      setTargetFileSize(0)
 
       if (selectedFile) {
         const outputExtension = 'mp4'
@@ -31,6 +32,7 @@ export default function OptimizeWhatsappConfig({
           const blob = new Blob([outputData.buffer], {
             type: `video/${outputExtension}`,
           })
+          setTargetFileSize(blob.size)
           const url = URL.createObjectURL(blob)
           triggerDownload(url, outputName)
         }

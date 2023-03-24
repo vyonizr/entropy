@@ -16,6 +16,7 @@ import {
   parseFFmpegTimeLog,
   calculateTimeRemaining,
   formatTimeRemaining,
+  getFileSize,
 } from './utils'
 
 import IconButton from './components/IconButton'
@@ -62,6 +63,7 @@ export default function Home() {
 
   function handleFileChange(file: File | null) {
     if (file && checkMaximumFileSize(file.size)) {
+      resetProgress()
       setSelectedFile(file)
       const reader = new FileReader()
       reader.readAsDataURL(file)
@@ -147,7 +149,7 @@ export default function Home() {
   )
 
   function handleClearFile() {
-    setProgress(0)
+    resetProgress()
     setSelectedFile(null)
     if (inputFileRef !== null && inputFileRef.current !== null) {
       inputFileRef.current.files = null
@@ -163,8 +165,11 @@ export default function Home() {
     if (timeRemaining) {
       text += ` (${timeRemaining})`
     }
+    if (targetFileSize > 0) {
+      text += ` (${getFileSize(targetFileSize)})`
+    }
     return text
-  }, [progress, timeRemaining])
+  }, [progress, timeRemaining, targetFileSize])
 
   const pickFileText = React.useMemo(() => {
     const fileType = capitalizeFirstLetter(mediaAction.inputType)
@@ -172,6 +177,15 @@ export default function Home() {
       selectedFile ? 'Change' : 'Select'
     } ${fileType} (max. ${MAXIMUM_FILE_SIZE})`
   }, [mediaAction.inputType, selectedFile])
+
+  function resetProgress() {
+    setProgress(0)
+    setTimeRemaining(null)
+  }
+
+  React.useEffect(() => {
+    resetProgress()
+  }, [mediaAction])
 
   return (
     <FFMPEGContext.Provider
