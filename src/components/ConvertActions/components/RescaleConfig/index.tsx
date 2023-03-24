@@ -15,7 +15,8 @@ const VALID_DIMENSION_REGEX = new RegExp(/^[1-9]\d*$/)
 // const INVALID_DIMENSION_REGEX = new RegExp(/^(?!^[1-9]\d*$).*$/)
 
 export default function RescaleConfig({ file }: RescaleConfigProps) {
-  const { isLoading, setIsLoading, runFFMPEG } = React.useContext(FFMPEGContext)
+  const { isLoading, setIsLoading, runFFMPEG, setTargetFileSize } =
+    React.useContext(FFMPEGContext)
   const [targetResolution, setTargetResolution] = React.useState(
     RESCALE_OPTIONS[0].value
   )
@@ -27,6 +28,8 @@ export default function RescaleConfig({ file }: RescaleConfigProps) {
   async function rescaleVideo(selectedFile: File | null) {
     try {
       setIsLoading(true)
+      setTargetFileSize(0)
+
       if (selectedFile) {
         const outputExtension = getFileExtension(selectedFile.name)
         const outputName = generateOutputName(
@@ -43,6 +46,7 @@ export default function RescaleConfig({ file }: RescaleConfigProps) {
           const blob = new Blob([outputData.buffer], {
             type: `video/${outputExtension}`,
           })
+          setTargetFileSize(blob.size)
           const url = URL.createObjectURL(blob)
           triggerDownload(url, outputName)
         }

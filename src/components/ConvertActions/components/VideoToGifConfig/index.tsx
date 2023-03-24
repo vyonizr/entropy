@@ -10,11 +10,13 @@ type VideoToGifConfigProps = {
 }
 
 export default function VideoToGifConfig({ file }: VideoToGifConfigProps) {
-  const { isLoading, setIsLoading, runFFMPEG } = React.useContext(FFMPEGContext)
+  const { isLoading, setIsLoading, runFFMPEG, setTargetFileSize } =
+    React.useContext(FFMPEGContext)
 
   async function videoToGIF(selectedFile: File | null) {
     try {
       setIsLoading(true)
+      setTargetFileSize(0)
 
       if (selectedFile) {
         const outputExtension = 'gif'
@@ -28,6 +30,7 @@ export default function VideoToGifConfig({ file }: VideoToGifConfigProps) {
           const blob = new Blob([outputData.buffer], {
             type: `image/${outputExtension}`,
           })
+          setTargetFileSize(blob.size)
           const url = URL.createObjectURL(blob)
           triggerDownload(url, outputName)
         }

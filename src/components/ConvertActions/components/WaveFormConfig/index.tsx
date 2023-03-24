@@ -10,12 +10,13 @@ type WaveFormConfigProps = {
 }
 
 export default function WaveFormConfig({ file }: WaveFormConfigProps) {
-  const { isLoading, setIsLoading, runFFMPEG } =
+  const { isLoading, setIsLoading, runFFMPEG, setTargetFileSize } =
     React.useContext(FFMPEGContext)
 
   async function createWaveform(selectedFile: File | null) {
     try {
       setIsLoading(true)
+      setTargetFileSize(0)
 
       if (selectedFile) {
         const outputExtension = 'png'
@@ -29,6 +30,7 @@ export default function WaveFormConfig({ file }: WaveFormConfigProps) {
           const blob = new Blob([outputData.buffer], {
             type: `image/${outputExtension}`,
           })
+          setTargetFileSize(blob.size)
           const url = URL.createObjectURL(blob)
           triggerDownload(url, outputName)
         }
