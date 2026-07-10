@@ -48,29 +48,32 @@ export default function FlipVideoConfig({ file }: FlipVideoConfigProps) {
   }
   return (
     <>
-      <ul className="mt-4">
-        {FLIP_OPTIONS.map((option) => (
-          <li key={option.value} className="flex">
-            <input
-              type="radio"
-              name="target-resolution"
-              value={option.label}
-              id={option.value}
-              checked={flipMode === option.value}
-              onChange={() => setFlipMode(option.value)}
-              disabled={isLoading}
-            />
-            <label htmlFor={option.value} className="ml-1 flex items-center">
-              {option.value === 'hflip' ? (
-                <TbFlipVertical />
-              ) : (
-                <TbFlipHorizontal />
-              )}
-              <span className="ml-1">{option.label}</span>
-            </label>
-          </li>
-        ))}
-      </ul>
+      <fieldset className="mt-4">
+        <legend className="sr-only">Flip direction</legend>
+        <ul>
+          {FLIP_OPTIONS.map((option) => (
+            <li key={option.value} className="flex">
+              <input
+                type="radio"
+                name="target-resolution"
+                value={option.label}
+                id={option.value}
+                checked={flipMode === option.value}
+                onChange={() => setFlipMode(option.value)}
+                disabled={isLoading}
+              />
+              <label htmlFor={option.value} className="ml-1 flex items-center">
+                {option.value === 'hflip' ? (
+                  <TbFlipVertical />
+                ) : (
+                  <TbFlipHorizontal />
+                )}
+                <span className="ml-1">{option.label}</span>
+              </label>
+            </li>
+          ))}
+        </ul>
+      </fieldset>
       <Button
         className="w-full max-w-[22rem] mt-4 flex items-center justify-center"
         onClick={() => flipVideo(file)}

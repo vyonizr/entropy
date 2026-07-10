@@ -49,6 +49,7 @@ export default function Home() {
   const githubIconRef = React.useRef<HTMLAnchorElement>(null)
 
   const [isLoading, setIsLoading] = React.useState(false)
+  const [isCoreLoading, setIsCoreLoading] = React.useState(false)
   const [progress, setProgress] = React.useState(0)
   const [targetFileSize, setTargetFileSize] = React.useState(0)
   const [targetDownloadUrl, setTargetDownloadUrl] = React.useState('')
@@ -103,6 +104,7 @@ export default function Home() {
 
         ffmpeg.on('progress', ({ progress: ratio }) => {
           setProgress(Math.round(ratio * 100))
+          setIsCoreLoading(false)
         })
 
         ffmpeg.on('log', ({ message }) => {
@@ -126,6 +128,7 @@ export default function Home() {
           }
         })
 
+        setIsCoreLoading(true)
         await ffmpeg.load({
           coreURL: await toBlobURL('/ffmpeg/ffmpeg-core.js', 'text/javascript'),
           wasmURL: await toBlobURL('/ffmpeg/ffmpeg-core.wasm', 'application/wasm'),
@@ -141,11 +144,13 @@ export default function Home() {
         const writeData = await ffmpeg.readFile(outputName)
         await ffmpeg.terminate()
         setTimeRemaining(null)
+        setIsCoreLoading(false)
 
         return writeData as Uint8Array<ArrayBuffer>
       }
     } catch (error) {
       console.error(error)
+      setIsCoreLoading(false)
     }
   }
 
@@ -187,6 +192,7 @@ export default function Home() {
   function resetProgress() {
     setProgress(0)
     setTimeRemaining(null)
+    setIsCoreLoading(false)
   }
 
   React.useEffect(() => {
@@ -214,20 +220,16 @@ export default function Home() {
             Entropy
           </h1>
         </a>
-        <button
+        <a
+          ref={githubIconRef}
+          href="https://github.com/vyonizr/entropy"
+          target="_blank"
+          rel="noopener noreferrer"
           className="h-12 w-12 flex justify-center items-center rounded-full text-white/[.75] hover:text-white hover:bg-white/[.1]"
-          onClick={() => githubIconRef.current?.click()}
+          aria-label="GitHub repository"
         >
-          <a
-            ref={githubIconRef}
-            href="https://github.com/vyonizr/entropy"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-inherit hover:text-inherit"
-          >
-            <FaGithub className="text-3xl text-inherit hover:text-inherit" />
-          </a>
-        </button>
+          <FaGithub className="text-3xl" />
+        </a>
       </nav>
       <main className="flex flex-col items-center px-4 pt-4">
         <h1 className="text-5xl font-medium block md:hidden font-['Lexend_Deca'] ">
@@ -239,24 +241,29 @@ export default function Home() {
             <strong>No upload needed.</strong>
           </Balancer>
         </h2>
-        <ul className="mt-4">
-          {RADIO_OPTIONS.map((option) => (
-            <li key={option.value}>
-              <input
-                type="radio"
-                name="media-action"
-                value={option.label}
-                id={option.value}
-                checked={mediaAction.value === option.value}
-                onChange={() => setMediaAction(option)}
-                disabled={isLoading}
-              />
-              <label htmlFor={option.value}>{`${getEmojiFromType(
-                option.icon
-              )} ${option.label}`}</label>
-            </li>
-          ))}
-        </ul>
+        <fieldset className="mt-4">
+          <legend className="mb-2 text-sm font-medium text-gray-500">
+            Choose an action
+          </legend>
+          <ul>
+            {RADIO_OPTIONS.map((option) => (
+              <li key={option.value}>
+                <input
+                  type="radio"
+                  name="media-action"
+                  value={option.label}
+                  id={option.value}
+                  checked={mediaAction.value === option.value}
+                  onChange={() => setMediaAction(option)}
+                  disabled={isLoading}
+                />
+                <label htmlFor={option.value}>{`${getEmojiFromType(
+                  option.icon
+                )} ${option.label}`}</label>
+              </li>
+            ))}
+          </ul>
+        </fieldset>
         <FileInput
           className="w-full max-w-[22rem] mt-4 flex items-center justify-center"
           accept={acceptedFileTypes}
@@ -273,7 +280,7 @@ export default function Home() {
           <span className="ml-2">{pickFileText}</span>
         </FileInput>
         {error.isError && (
-          <p className="mt-2 text-red-500 text-center">{error.message}</p>
+          <p className="mt-2 text-red-500 text-center" role="alert">{error.message}</p>
         )}
         {selectedFile && (
           <>
@@ -300,6 +307,7 @@ export default function Home() {
               </p>
               <IconButton
                 icon="trash"
+                label="Remove file"
                 onClick={handleClearFile}
                 disabled={isLoading}
                 className="border-l-2 border-gray-200 bg-gray-200 text-gray-600"
@@ -308,10 +316,19 @@ export default function Home() {
             <ConvertActions action={mediaAction.value} file={selectedFile} />
           </>
         )}
+        {isCoreLoading && progress === 0 && (
+          <p className="mt-2" aria-live="polite">Preparing...</p>
+        )}
         {progress > 0 && (
           <>
-            <p className="mt-2">{progressText}</p>
-            <div className="h-2 w-full max-w-[22rem] overflow-hidden rounded bg-gray-300">
+            <p className="mt-2" aria-live="polite">{progressText}</p>
+            <div
+              className="h-2 w-full max-w-[22rem] overflow-hidden rounded bg-gray-300"
+              role="progressbar"
+              aria-valuenow={progress}
+              aria-valuemin={0}
+              aria-valuemax={100}
+            >
               <div
                 className="h-2 bg-primary"
                 style={{ width: `${progress}%`, transitionDuration: '100ms' }}
