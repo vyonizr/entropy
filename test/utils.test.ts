@@ -7,6 +7,8 @@ import {
   calculateTimeRemaining,
   formatTimeRemaining,
   parseFFmpegTimeLog,
+  parseBitrateFromLog,
+  isSizeImproved,
   capitalizeFirstLetter,
 } from '../src/utils'
 
@@ -156,5 +158,41 @@ describe('capitalizeFirstLetter', () => {
 
   it('should return empty string if input is empty string', () => {
     expect(capitalizeFirstLetter('')).toBe('')
+  })
+})
+
+describe('parseBitrateFromLog', () => {
+  it('should parse bitrate from ffmpeg probe output', () => {
+    expect(
+      parseBitrateFromLog(
+        '  Duration: 00:00:30.04, start: 0.000000, bitrate: 1234 kb/s'
+      )
+    ).toBe(1234)
+  })
+
+  it('should return null if no bitrate found', () => {
+    expect(
+      parseBitrateFromLog(
+        'frame=  138 fps= 90 q=31.0 size=       0kB time=00:00:01.41 bitrate=   0.3kbits/s speed=0.919x'
+      )
+    ).toBeNull()
+  })
+
+  it('should return null for undefined input', () => {
+    expect(parseBitrateFromLog(undefined)).toBeNull()
+  })
+})
+
+describe('isSizeImproved', () => {
+  it('should return true if output is smaller than input', () => {
+    expect(isSizeImproved(1000, 500)).toBe(true)
+  })
+
+  it('should return false if output is same size as input', () => {
+    expect(isSizeImproved(1000, 1000)).toBe(false)
+  })
+
+  it('should return false if output is larger than input', () => {
+    expect(isSizeImproved(500, 1000)).toBe(false)
   })
 })

@@ -15,6 +15,8 @@ import {
   getEmojiFromType,
   capitalizeFirstLetter,
   parseFFmpegTimeLog,
+  parseBitrateFromLog,
+  isSizeImproved,
   calculateTimeRemaining,
   formatTimeRemaining,
   getFileSize,
@@ -24,6 +26,11 @@ import IconButton from './components/IconButton'
 import FileInput from './components/FileInput'
 import ConvertActions from './components/ConvertActions'
 
+export type FFMPEGResult =
+  | { data: Uint8Array<ArrayBuffer>; improved: true }
+  | { data: null; improved: false }
+  | undefined
+
 export const FFMPEGContext = React.createContext({
   isLoading: false,
   setIsLoading: (_loading: boolean) => {},
@@ -31,13 +38,17 @@ export const FFMPEGContext = React.createContext({
   setProgress: (_progress: number) => {},
   targetFileSize: 0,
   setTargetFileSize: (_targetFileSize: number) => {},
+  statusMessage: null as string | null,
+  setStatusMessage: (_statusMessage: string | null) => {},
   targetDownloadUrl: '',
   setTargetDownloadUrl: (_targetDownloadUrl: string) => {},
   runFFMPEG: (
     _selectedFile: File,
     _outputName: string,
-    _method?: string
-  ): Promise<Uint8Array<ArrayBuffer> | undefined> => Promise.resolve(undefined),
+    _method?: string,
+    _enforceSizeGuarantee?: boolean,
+    _bitrateCeilingKbps?: number
+  ): Promise<FFMPEGResult> => Promise.resolve(undefined),
 })
 
 const MAXIMUM_FILE_SIZE = '1GB'
@@ -52,6 +63,7 @@ export default function Home() {
   const [isCoreLoading, setIsCoreLoading] = React.useState(false)
   const [progress, setProgress] = React.useState(0)
   const [targetFileSize, setTargetFileSize] = React.useState(0)
+  const [statusMessage, setStatusMessage] = React.useState<string | null>(null)
   const [targetDownloadUrl, setTargetDownloadUrl] = React.useState('')
   const [timeRemaining, setTimeRemaining] = React.useState<string | null>(null)
   const [mediaAction, setMediaAction] = React.useState(RADIO_OPTIONS[0])
@@ -96,11 +108,14 @@ export default function Home() {
   async function runFFMPEG(
     selectedFile: File,
     outputName: string,
-    method = ''
-  ) {
+    method = '',
+    enforceSizeGuarantee = false,
+    bitrateCeilingKbps?: number
+  ): Promise<FFMPEGResult> {
     try {
       if (selectedFile) {
         const ffmpeg = new FFmpeg()
+        let probedBitrate: number | null = null
 
         ffmpeg.on('progress', ({ progress: ratio }) => {
           setProgress(Math.round(ratio * 100))
@@ -110,6 +125,10 @@ export default function Home() {
         ffmpeg.on('log', ({ message }) => {
           if (import.meta.env.DEV) {
             console.log(message)
+          }
+          const bitrate = parseBitrateFromLog(message)
+          if (bitrate !== null) {
+            probedBitrate = bitrate
           }
           const timeLog = parseFFmpegTimeLog(message)
           if (
@@ -134,6 +153,25 @@ export default function Home() {
           wasmURL: await toBlobURL('/ffmpeg/ffmpeg-core.wasm', 'application/wasm'),
         })
         await ffmpeg.writeFile(selectedFile.name, await fetchFile(selectedFile))
+
+        if (bitrateCeilingKbps !== undefined) {
+          try {
+            await ffmpeg.exec(['-i', selectedFile.name])
+          } catch {
+            // -i-only exits non-zero; bitrate info captured in log handler
+          }
+
+          if (
+            probedBitrate !== null &&
+            probedBitrate <= bitrateCeilingKbps
+          ) {
+            await ffmpeg.terminate()
+            setIsCoreLoading(false)
+            setTimeRemaining(null)
+            return { data: null, improved: false }
+          }
+        }
+
         await ffmpeg.exec([
           '-i',
           selectedFile.name,
@@ -141,12 +179,20 @@ export default function Home() {
           outputName,
         ])
 
-        const writeData = await ffmpeg.readFile(outputName)
+        const rawData = await ffmpeg.readFile(outputName)
+        const writeData = rawData as Uint8Array<ArrayBuffer>
         await ffmpeg.terminate()
         setTimeRemaining(null)
         setIsCoreLoading(false)
 
-        return writeData as Uint8Array<ArrayBuffer>
+        if (
+          enforceSizeGuarantee &&
+          !isSizeImproved(selectedFile.size, writeData.byteLength)
+        ) {
+          return { data: null, improved: false }
+        }
+
+        return { data: writeData, improved: true }
       }
     } catch (error) {
       console.error(error)
@@ -193,6 +239,7 @@ export default function Home() {
     setProgress(0)
     setTimeRemaining(null)
     setIsCoreLoading(false)
+    setStatusMessage(null)
   }
 
   React.useEffect(() => {
@@ -208,6 +255,8 @@ export default function Home() {
         setProgress,
         targetFileSize,
         setTargetFileSize,
+        statusMessage,
+        setStatusMessage,
         targetDownloadUrl,
         setTargetDownloadUrl,
         runFFMPEG,
@@ -318,6 +367,9 @@ export default function Home() {
         )}
         {isCoreLoading && progress === 0 && (
           <p className="mt-2" aria-live="polite">Preparing...</p>
+        )}
+        {statusMessage && (
+          <p className="mt-2" aria-live="polite">{statusMessage}</p>
         )}
         {progress > 0 && (
           <>

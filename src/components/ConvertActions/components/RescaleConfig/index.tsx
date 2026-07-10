@@ -3,7 +3,7 @@ import { FaRegPlayCircle } from 'react-icons/fa'
 
 import { FFMPEGContext } from '@/App'
 import Button from '@/components/Button'
-import { getFileExtension, generateOutputName, triggerDownload } from '@/utils'
+import { getFileExtension, generateOutputName, triggerDownload, getFileSize } from '@/utils'
 
 import { RESCALE_OPTIONS } from './constants'
 
@@ -15,7 +15,7 @@ const VALID_DIMENSION_REGEX = new RegExp(/^[1-9]\d*$/)
 // const INVALID_DIMENSION_REGEX = new RegExp(/^(?!^[1-9]\d*$).*$/)
 
 export default function RescaleConfig({ file }: RescaleConfigProps) {
-  const { isLoading, setIsLoading, runFFMPEG, setTargetFileSize } =
+  const { isLoading, setIsLoading, runFFMPEG, setTargetFileSize, setStatusMessage } =
     React.useContext(FFMPEGContext)
   const [targetResolution, setTargetResolution] = React.useState(
     RESCALE_OPTIONS[0].value
@@ -41,14 +41,17 @@ export default function RescaleConfig({ file }: RescaleConfigProps) {
         if (targetResolution === 'custom') {
           method = `-vf scale=trunc(${customResolution.width}/2)*2:trunc(${customResolution.height}/2)*2`
         }
-        const outputData = await runFFMPEG(selectedFile, outputName, method)
-        if (outputData) {
-          const blob = new Blob([outputData], {
+        const result = await runFFMPEG(selectedFile, outputName, method, true)
+        if (result?.improved) {
+          const blob = new Blob([result.data], {
             type: `video/${outputExtension}`,
           })
           setTargetFileSize(blob.size)
           const url = URL.createObjectURL(blob)
           triggerDownload(url, outputName)
+        } else if (result && !result.improved) {
+          setTargetFileSize(selectedFile.size)
+          setStatusMessage(`Your file is already optimized — no smaller version available (original size: ${getFileSize(selectedFile.size)})`)
         }
       }
     } catch (error) {

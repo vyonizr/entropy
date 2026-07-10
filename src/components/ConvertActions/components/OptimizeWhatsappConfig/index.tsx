@@ -3,7 +3,7 @@ import { FaRegPlayCircle } from 'react-icons/fa'
 
 import Button from '@/components/Button'
 import { FFMPEGContext } from '@/App'
-import { generateOutputName, triggerDownload } from '@/utils'
+import { generateOutputName, triggerDownload, getFileSize } from '@/utils'
 
 type OptimizeWhatsappConfigProps = {
   file: File | null
@@ -12,7 +12,7 @@ type OptimizeWhatsappConfigProps = {
 export default function OptimizeWhatsappConfig({
   file,
 }: OptimizeWhatsappConfigProps) {
-  const { isLoading, setIsLoading, runFFMPEG, setTargetFileSize } =
+  const { isLoading, setIsLoading, runFFMPEG, setTargetFileSize, setStatusMessage } =
     React.useContext(FFMPEGContext)
 
   async function convertVideoToWhatsapp(selectedFile: File | null) {
@@ -27,14 +27,17 @@ export default function OptimizeWhatsappConfig({
           outputExtension
         )
         const method = `-vf scale=trunc(iw/2)*2:trunc(ih/2)*2 -c:v libx264 -profile:v baseline -level 3.0 -preset slow -crf 23 -c:a aac -b:a 128k -ac 2`
-        const outputData = await runFFMPEG(selectedFile, outputName, method)
-        if (outputData) {
-          const blob = new Blob([outputData], {
+        const result = await runFFMPEG(selectedFile, outputName, method, true, 2000)
+        if (result?.improved) {
+          const blob = new Blob([result.data], {
             type: `video/${outputExtension}`,
           })
           setTargetFileSize(blob.size)
           const url = URL.createObjectURL(blob)
           triggerDownload(url, outputName)
+        } else if (result && !result.improved) {
+          setTargetFileSize(selectedFile.size)
+          setStatusMessage(`Your file is already optimized — no smaller version available (original size: ${getFileSize(selectedFile.size)})`)
         }
       }
     } catch (error) {

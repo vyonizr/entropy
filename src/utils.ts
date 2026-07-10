@@ -165,6 +165,18 @@ export function parseFFmpegTimeLog(
   }
 }
 
+export function parseBitrateFromLog(
+  message: string | undefined
+): number | null {
+  if (message === undefined) return null
+  const match = message.match(/bitrate:\s*(\d+)\s*kb\/s/)
+  return match ? parseInt(match[1], 10) : null
+}
+
+export function isSizeImproved(inputSize: number, outputSize: number): boolean {
+  return outputSize < inputSize
+}
+
 // capitalize first letter in text
 export function capitalizeFirstLetter(text: string) {
   return text.charAt(0).toUpperCase() + text.slice(1)

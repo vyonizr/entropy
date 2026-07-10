@@ -3,7 +3,7 @@ import { FaRegPlayCircle } from 'react-icons/fa'
 
 import { FFMPEGContext } from '@/App'
 import Button from '@/components/Button'
-import { generateOutputName, triggerDownload } from '@/utils'
+import { generateOutputName, triggerDownload, getFileSize } from '@/utils'
 import { AUDIO_EXTENSION_OPTIONS } from './constants'
 
 type ConvertAudioProps = {
@@ -12,7 +12,7 @@ type ConvertAudioProps = {
 }
 
 function ConvertAudio({ file, inputType }: ConvertAudioProps) {
-  const { isLoading, setIsLoading, runFFMPEG, setTargetFileSize } =
+  const { isLoading, setIsLoading, runFFMPEG, setTargetFileSize, setStatusMessage } =
     React.useContext(FFMPEGContext)
   const [targetExtension, setTargetExtension] = React.useState(
     AUDIO_EXTENSION_OPTIONS[0].value
@@ -41,14 +41,18 @@ function ConvertAudio({ file, inputType }: ConvertAudioProps) {
           method = `${bypassVideoProcessingParam} ${method}`
         }
 
-        const outputData = await runFFMPEG(selectedFile, outputName, method)
-        if (outputData) {
-          const blob = new Blob([outputData], {
+        const enforceSizeGuarantee = inputType === 'audio'
+        const result = await runFFMPEG(selectedFile, outputName, method, enforceSizeGuarantee)
+        if (result?.improved) {
+          const blob = new Blob([result.data], {
             type: `audio/${outputExtension}`,
           })
           setTargetFileSize(blob.size)
           const url = URL.createObjectURL(blob)
           triggerDownload(url, outputName)
+        } else if (result && !result.improved) {
+          setTargetFileSize(selectedFile.size)
+          setStatusMessage(`Your file is already optimized — no smaller version available (original size: ${getFileSize(selectedFile.size)})`)
         }
       }
     } catch (error) {
