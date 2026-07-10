@@ -43,7 +43,7 @@ export default function RescaleConfig({ file }: RescaleConfigProps) {
         }
         const outputData = await runFFMPEG(selectedFile, outputName, method)
         if (outputData) {
-          const blob = new Blob([outputData.buffer], {
+          const blob = new Blob([outputData], {
             type: `video/${outputExtension}`,
           })
           setTargetFileSize(blob.size)

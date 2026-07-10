@@ -25,3 +25,6 @@ dist-ssr
 
 dev-dist
 coverage
+
+# Copied from @ffmpeg/core by scripts/copy-ffmpeg-core.mjs (postinstall) — not source, regenerated on install
+public/ffmpeg/

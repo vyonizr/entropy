@@ -13,6 +13,9 @@ export default defineConfig({
       devOptions: {
         enabled: false,
       },
+      workbox: {
+        maximumFileSizeToCacheInBytes: 40 * 1024 * 1024,
+      },
       includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
       manifest: {
         name: 'Entropy',

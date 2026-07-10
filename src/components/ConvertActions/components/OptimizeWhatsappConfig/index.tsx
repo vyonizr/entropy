@@ -29,7 +29,7 @@ export default function OptimizeWhatsappConfig({
         const method = `-vf scale=trunc(iw/2)*2:trunc(ih/2)*2 -c:v libx264 -profile:v baseline -level 3.0 -preset slow -crf 23 -c:a aac -b:a 128k -ac 2`
         const outputData = await runFFMPEG(selectedFile, outputName, method)
         if (outputData) {
-          const blob = new Blob([outputData.buffer], {
+          const blob = new Blob([outputData], {
             type: `video/${outputExtension}`,
           })
           setTargetFileSize(blob.size)

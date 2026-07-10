@@ -43,7 +43,7 @@ function ConvertAudio({ file, inputType }: ConvertAudioProps) {
 
         const outputData = await runFFMPEG(selectedFile, outputName, method)
         if (outputData) {
-          const blob = new Blob([outputData.buffer], {
+          const blob = new Blob([outputData], {
             type: `audio/${outputExtension}`,
           })
           setTargetFileSize(blob.size)
@@ -64,7 +64,6 @@ function ConvertAudio({ file, inputType }: ConvertAudioProps) {
         className="w-full max-w-[22rem] mt-4 h-12 border-2 border-primary rounded-md px-2"
         value={targetExtension}
         onChange={(event) => setTargetExtension(event.target.value)}
-        placeholder="Select target format"
         disabled={isLoading}
       >
         {AUDIO_EXTENSION_OPTIONS.map((option) => (

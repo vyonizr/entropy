@@ -33,7 +33,7 @@ export default function ConvertVideoConfig({ file }: ConvertVideoConfigProps) {
 
         const outputData = await runFFMPEG(selectedFile, outputName)
         if (outputData) {
-          const blob = new Blob([outputData.buffer], {
+          const blob = new Blob([outputData], {
             type: `video/${outputExtension}`,
           })
           const url = URL.createObjectURL(blob)
@@ -53,7 +53,6 @@ export default function ConvertVideoConfig({ file }: ConvertVideoConfigProps) {
         className="w-full max-w-[22rem] mt-4 h-12 border-2 border-primary rounded-md px-2"
         value={targetExtension}
         onChange={(event) => setTargetExtension(event.target.value)}
-        placeholder="Select target format"
         disabled={isLoading}
       >
         {VIDEO_EXTENSION_OPTIONS.map((option) => (

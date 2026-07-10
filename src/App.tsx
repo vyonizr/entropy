@@ -1,5 +1,6 @@
 import React from 'react'
-import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg'
+import { FFmpeg } from '@ffmpeg/ffmpeg'
+import { fetchFile, toBlobURL } from '@ffmpeg/util'
 import {
   FaExchangeAlt,
   FaFileVideo,
@@ -36,7 +37,7 @@ export const FFMPEGContext = React.createContext({
     _selectedFile: File,
     _outputName: string,
     _method?: string
-  ): Promise<Uint8Array | undefined> => Promise.resolve(undefined),
+  ): Promise<Uint8Array<ArrayBuffer> | undefined> => Promise.resolve(undefined),
 })
 
 const MAXIMUM_FILE_SIZE = '1GB'
@@ -98,14 +99,16 @@ export default function Home() {
   ) {
     try {
       if (selectedFile) {
-        const ffmpeg = createFFmpeg({
-          log: import.meta.env.DEV,
-          progress: ({ ratio }) => {
-            setProgress(Math.round(ratio * 100))
-          },
+        const ffmpeg = new FFmpeg()
+
+        ffmpeg.on('progress', ({ progress: ratio }) => {
+          setProgress(Math.round(ratio * 100))
         })
 
-        ffmpeg.setLogger(({ message }) => {
+        ffmpeg.on('log', ({ message }) => {
+          if (import.meta.env.DEV) {
+            console.log(message)
+          }
           const timeLog = parseFFmpegTimeLog(message)
           if (
             timeLog &&
@@ -123,20 +126,23 @@ export default function Home() {
           }
         })
 
-        await ffmpeg.load()
-        ffmpeg.FS('writeFile', selectedFile.name, await fetchFile(selectedFile))
-        await ffmpeg.run(
+        await ffmpeg.load({
+          coreURL: await toBlobURL('/ffmpeg/ffmpeg-core.js', 'text/javascript'),
+          wasmURL: await toBlobURL('/ffmpeg/ffmpeg-core.wasm', 'application/wasm'),
+        })
+        await ffmpeg.writeFile(selectedFile.name, await fetchFile(selectedFile))
+        await ffmpeg.exec([
           '-i',
           selectedFile.name,
           ...method.split(' '),
-          outputName
-        )
+          outputName,
+        ])
 
-        const writeData = ffmpeg.FS('readFile', outputName)
-        ffmpeg.exit()
+        const writeData = await ffmpeg.readFile(outputName)
+        await ffmpeg.terminate()
         setTimeRemaining(null)
 
-        return writeData
+        return writeData as Uint8Array<ArrayBuffer>
       }
     } catch (error) {
       console.error(error)
