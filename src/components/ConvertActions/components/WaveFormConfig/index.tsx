@@ -25,9 +25,9 @@ export default function WaveFormConfig({ file }: WaveFormConfigProps) {
           outputExtension
         )
         const method = `-filter_complex [0:a]aformat=channel_layouts=mono,showwavespic=s=1920x1080:colors=#ffffff -vframes 1 -c:v png -f image2pipe`
-        const outputData = await runFFMPEG(selectedFile, outputName, method)
-        if (outputData) {
-          const blob = new Blob([outputData.buffer], {
+        const result = await runFFMPEG(selectedFile, outputName, method)
+        if (result?.improved) {
+          const blob = new Blob([result.data], {
             type: `image/${outputExtension}`,
           })
           setTargetFileSize(blob.size)

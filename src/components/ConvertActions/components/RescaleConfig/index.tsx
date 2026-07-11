@@ -3,7 +3,7 @@ import { FaRegPlayCircle } from 'react-icons/fa'
 
 import { FFMPEGContext } from '@/App'
 import Button from '@/components/Button'
-import { getFileExtension, generateOutputName, triggerDownload } from '@/utils'
+import { getFileExtension, generateOutputName, triggerDownload, getFileSize } from '@/utils'
 
 import { RESCALE_OPTIONS } from './constants'
 
@@ -15,7 +15,7 @@ const VALID_DIMENSION_REGEX = new RegExp(/^[1-9]\d*$/)
 // const INVALID_DIMENSION_REGEX = new RegExp(/^(?!^[1-9]\d*$).*$/)
 
 export default function RescaleConfig({ file }: RescaleConfigProps) {
-  const { isLoading, setIsLoading, runFFMPEG, setTargetFileSize } =
+  const { isLoading, setIsLoading, runFFMPEG, setTargetFileSize, setStatusMessage } =
     React.useContext(FFMPEGContext)
   const [targetResolution, setTargetResolution] = React.useState(
     RESCALE_OPTIONS[0].value
@@ -41,14 +41,17 @@ export default function RescaleConfig({ file }: RescaleConfigProps) {
         if (targetResolution === 'custom') {
           method = `-vf scale=trunc(${customResolution.width}/2)*2:trunc(${customResolution.height}/2)*2`
         }
-        const outputData = await runFFMPEG(selectedFile, outputName, method)
-        if (outputData) {
-          const blob = new Blob([outputData.buffer], {
+        const result = await runFFMPEG(selectedFile, outputName, method, true)
+        if (result?.improved) {
+          const blob = new Blob([result.data], {
             type: `video/${outputExtension}`,
           })
           setTargetFileSize(blob.size)
           const url = URL.createObjectURL(blob)
           triggerDownload(url, outputName)
+        } else if (result && !result.improved) {
+          setTargetFileSize(selectedFile.size)
+          setStatusMessage(`Your file is already optimized — no smaller version available (original size: ${getFileSize(selectedFile.size)})`)
         }
       }
     } catch (error) {
@@ -79,29 +82,34 @@ export default function RescaleConfig({ file }: RescaleConfigProps) {
 
   return (
     <>
-      <ul className="mt-4 flex">
-        {RESCALE_OPTIONS.map((option) => (
-          <li key={option.value} className="mx-2">
-            <input
-              type="radio"
-              name="target-resolution"
-              value={option.label}
-              id={option.value}
-              checked={targetResolution === option.value}
-              onChange={() => setTargetResolution(option.value)}
-              disabled={isLoading}
-            />
-            <label htmlFor={option.value} className="ml-1">
-              {option.label}
-            </label>
-          </li>
-        ))}
-      </ul>
+      <fieldset className="mt-4">
+        <legend className="sr-only">Target resolution</legend>
+        <ul className="flex">
+          {RESCALE_OPTIONS.map((option) => (
+            <li key={option.value} className="mx-2">
+              <input
+                type="radio"
+                name="target-resolution"
+                value={option.label}
+                id={option.value}
+                checked={targetResolution === option.value}
+                onChange={() => setTargetResolution(option.value)}
+                disabled={isLoading}
+              />
+              <label htmlFor={option.value} className="ml-1">
+                {option.label}
+              </label>
+            </li>
+          ))}
+        </ul>
+      </fieldset>
       {targetResolution === 'custom' && (
         <div className="w-40 mt-2 flex justify-center items-center">
+          <label htmlFor="width" className="sr-only">Width</label>
           <input
             type="number"
             name="width"
+            id="width"
             placeholder="Width"
             className="p-2 w-24 rounded border-2 border-gray-200"
             value={customResolution.width}
@@ -110,9 +118,11 @@ export default function RescaleConfig({ file }: RescaleConfigProps) {
             min="1"
           />
           <span className="mx-2">&times;</span>
+          <label htmlFor="height" className="sr-only">Height</label>
           <input
             type="number"
             name="height"
+            id="height"
             placeholder="Height"
             className="p-2 w-24 rounded border-2 border-gray-200"
             value={customResolution.height}

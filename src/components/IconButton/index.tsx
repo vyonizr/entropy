@@ -7,6 +7,7 @@ interface ButtonProps {
   disabled?: boolean
   className?: string
   primary?: boolean
+  label?: string
 }
 
 function IconButton({
@@ -15,6 +16,7 @@ function IconButton({
   disabled,
   className: additionalClass,
   primary = false,
+  label,
 }: ButtonProps) {
   let className =
     'w-12 h-12 flex justify-center items-center disabled:bg-gray-200' +
@@ -30,7 +32,7 @@ function IconButton({
   }
 
   return (
-    <button className={className} onClick={onClick} disabled={disabled}>
+    <button className={className} onClick={onClick} disabled={disabled} aria-label={label}>
       <Icon icon={icon} color={disabled || primary ? 'white' : undefined} />
     </button>
   )

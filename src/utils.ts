@@ -145,7 +145,7 @@ export function parseFFmpegTimeLog(
   }
 
   const time = logMessage.match(/time=(\d{2}:\d{2}:\d{2}\.\d{2})/)
-  const speed = logMessage.match(/speed=(\d{1}\.\d{3})x/)
+  const speed = logMessage.match(/speed=\s*(\d+\.?\d*)x/)
 
   if (!time || !speed) {
     return null
@@ -163,6 +163,18 @@ export function parseFFmpegTimeLog(
     time: timeInSeconds,
     speed: speedAsNumber,
   }
+}
+
+export function parseBitrateFromLog(
+  message: string | undefined
+): number | null {
+  if (message === undefined) return null
+  const match = message.match(/bitrate:\s*(\d+)\s*kb\/s/)
+  return match ? parseInt(match[1], 10) : null
+}
+
+export function isSizeImproved(inputSize: number, outputSize: number): boolean {
+  return outputSize < inputSize
 }
 
 // capitalize first letter in text

@@ -4,7 +4,7 @@ import { TbFlipHorizontal, TbFlipVertical } from 'react-icons/tb'
 
 import Button from '@/components/Button'
 import { FFMPEGContext } from '@/App'
-import { getFileExtension, generateOutputName, triggerDownload } from '@/utils'
+import { getFileExtension, generateOutputName, triggerDownload, getFileSize } from '@/utils'
 
 import { FLIP_OPTIONS } from './constants'
 
@@ -13,7 +13,7 @@ type FlipVideoConfigProps = {
 }
 
 export default function FlipVideoConfig({ file }: FlipVideoConfigProps) {
-  const { isLoading, setIsLoading, runFFMPEG, setTargetFileSize } =
+  const { isLoading, setIsLoading, runFFMPEG, setTargetFileSize, setStatusMessage } =
     React.useContext(FFMPEGContext)
 
   const [flipMode, setFlipMode] = React.useState(FLIP_OPTIONS[0].value)
@@ -30,14 +30,17 @@ export default function FlipVideoConfig({ file }: FlipVideoConfigProps) {
           outputExtension
         )
         const method = `-vf ${flipMode}`
-        const outputData = await runFFMPEG(selectedFile, outputName, method)
-        if (outputData) {
-          const blob = new Blob([outputData.buffer], {
+        const result = await runFFMPEG(selectedFile, outputName, method, true)
+        if (result?.improved) {
+          const blob = new Blob([result.data], {
             type: `video/${outputExtension}`,
           })
           setTargetFileSize(blob.size)
           const url = URL.createObjectURL(blob)
           triggerDownload(url, outputName)
+        } else if (result && !result.improved) {
+          setTargetFileSize(selectedFile.size)
+          setStatusMessage(`Your file is already optimized — no smaller version available (original size: ${getFileSize(selectedFile.size)})`)
         }
       }
     } catch (error) {
@@ -48,29 +51,32 @@ export default function FlipVideoConfig({ file }: FlipVideoConfigProps) {
   }
   return (
     <>
-      <ul className="mt-4">
-        {FLIP_OPTIONS.map((option) => (
-          <li key={option.value} className="flex">
-            <input
-              type="radio"
-              name="target-resolution"
-              value={option.label}
-              id={option.value}
-              checked={flipMode === option.value}
-              onChange={() => setFlipMode(option.value)}
-              disabled={isLoading}
-            />
-            <label htmlFor={option.value} className="ml-1 flex items-center">
-              {option.value === 'hflip' ? (
-                <TbFlipVertical />
-              ) : (
-                <TbFlipHorizontal />
-              )}
-              <span className="ml-1">{option.label}</span>
-            </label>
-          </li>
-        ))}
-      </ul>
+      <fieldset className="mt-4">
+        <legend className="sr-only">Flip direction</legend>
+        <ul>
+          {FLIP_OPTIONS.map((option) => (
+            <li key={option.value} className="flex">
+              <input
+                type="radio"
+                name="target-resolution"
+                value={option.label}
+                id={option.value}
+                checked={flipMode === option.value}
+                onChange={() => setFlipMode(option.value)}
+                disabled={isLoading}
+              />
+              <label htmlFor={option.value} className="ml-1 flex items-center">
+                {option.value === 'hflip' ? (
+                  <TbFlipVertical />
+                ) : (
+                  <TbFlipHorizontal />
+                )}
+                <span className="ml-1">{option.label}</span>
+              </label>
+            </li>
+          ))}
+        </ul>
+      </fieldset>
       <Button
         className="w-full max-w-[22rem] mt-4 flex items-center justify-center"
         onClick={() => flipVideo(file)}

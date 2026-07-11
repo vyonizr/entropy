@@ -2,11 +2,16 @@ import { describe, it, expect } from 'vitest'
 import {
   trimFilename,
   generateOutputName,
+  truncateFileName,
+  getFileExtension,
+  getFileSize,
   getEmojiFromType,
   formatTime,
   calculateTimeRemaining,
   formatTimeRemaining,
   parseFFmpegTimeLog,
+  parseBitrateFromLog,
+  isSizeImproved,
   capitalizeFirstLetter,
 } from '../src/utils'
 
@@ -22,6 +27,10 @@ describe('trimFilename', () => {
   it('should return filename if no dot', () => {
     expect(trimFilename('foo')).toBe('foo')
   })
+
+  it('should return empty string for dotfiles starting with a dot', () => {
+    expect(trimFilename('.gitignore')).toBe('')
+  })
 })
 
 describe('generateOutputName', () => {
@@ -33,6 +42,69 @@ describe('generateOutputName', () => {
     expect(generateOutputName('foo.bar.baz.mp4', 'webm')).toBe(
       'foo.bar.baz_entropy.webm'
     )
+  })
+})
+
+describe('getFileExtension', () => {
+  it('should return the extension without the dot', () => {
+    expect(getFileExtension('foo.mp4')).toBe('mp4')
+  })
+
+  it('should return the last extension for filenames with multiple dots', () => {
+    expect(getFileExtension('foo.bar.baz.mp4')).toBe('mp4')
+  })
+
+  it('should return the whole filename when there is no dot', () => {
+    expect(getFileExtension('foo')).toBe('foo')
+  })
+})
+
+describe('truncateFileName', () => {
+  it('should return the filename unchanged if within maxLength', () => {
+    expect(truncateFileName('foo.mp4')).toBe('foo.mp4')
+  })
+
+  it('should return the filename unchanged when exactly at maxLength', () => {
+    const fileName = 'a'.repeat(20) + '.mp4'
+    expect(fileName.length).toBe(24)
+    expect(truncateFileName(fileName)).toBe(fileName)
+  })
+
+  it('should truncate the middle of long filenames and keep the extension', () => {
+    const fileName = 'a-very-long-filename-that-exceeds-the-limit.mp4'
+    const result = truncateFileName(fileName)
+    expect(result.length).toBeLessThan(fileName.length)
+    expect(result).toContain('...')
+    expect(result.endsWith('.mp4')).toBe(true)
+  })
+
+  it('should respect a custom maxLength', () => {
+    const fileName = 'a-very-long-filename-that-exceeds-the-limit.mp4'
+    expect(truncateFileName(fileName, 10).length).toBeLessThan(
+      truncateFileName(fileName, 40).length
+    )
+  })
+})
+
+describe('getFileSize', () => {
+  it('should format bytes', () => {
+    expect(getFileSize(500)).toBe('500.00 B')
+  })
+
+  it('should format kilobytes', () => {
+    expect(getFileSize(1024)).toBe('1.00 KB')
+  })
+
+  it('should format megabytes', () => {
+    expect(getFileSize(1024 * 1024 * 2.5)).toBe('2.50 MB')
+  })
+
+  it('should format gigabytes', () => {
+    expect(getFileSize(1024 * 1024 * 1024)).toBe('1.00 GB')
+  })
+
+  it('should format zero bytes', () => {
+    expect(getFileSize(0)).toBe('0.00 B')
   })
 })
 
@@ -147,6 +219,18 @@ describe('parseFFmpegTimeLog', () => {
   it('should return null if log message is undefined', () => {
     expect(parseFFmpegTimeLog(undefined)).toBeNull()
   })
+
+  it('should return null if the log has time but no speed', () => {
+    expect(
+      parseFFmpegTimeLog('frame=  138 fps= 90 time=00:00:01.41 bitrate=0.3kbits/s')
+    ).toBeNull()
+  })
+
+  it('should return null if the log has speed but no time', () => {
+    expect(
+      parseFFmpegTimeLog('frame=  138 fps= 90 speed=0.919x')
+    ).toBeNull()
+  })
 })
 
 describe('capitalizeFirstLetter', () => {
@@ -156,5 +240,41 @@ describe('capitalizeFirstLetter', () => {
 
   it('should return empty string if input is empty string', () => {
     expect(capitalizeFirstLetter('')).toBe('')
+  })
+})
+
+describe('parseBitrateFromLog', () => {
+  it('should parse bitrate from ffmpeg probe output', () => {
+    expect(
+      parseBitrateFromLog(
+        '  Duration: 00:00:30.04, start: 0.000000, bitrate: 1234 kb/s'
+      )
+    ).toBe(1234)
+  })
+
+  it('should return null if no bitrate found', () => {
+    expect(
+      parseBitrateFromLog(
+        'frame=  138 fps= 90 q=31.0 size=       0kB time=00:00:01.41 bitrate=   0.3kbits/s speed=0.919x'
+      )
+    ).toBeNull()
+  })
+
+  it('should return null for undefined input', () => {
+    expect(parseBitrateFromLog(undefined)).toBeNull()
+  })
+})
+
+describe('isSizeImproved', () => {
+  it('should return true if output is smaller than input', () => {
+    expect(isSizeImproved(1000, 500)).toBe(true)
+  })
+
+  it('should return false if output is same size as input', () => {
+    expect(isSizeImproved(1000, 1000)).toBe(false)
+  })
+
+  it('should return false if output is larger than input', () => {
+    expect(isSizeImproved(500, 1000)).toBe(false)
   })
 })

@@ -1,5 +1,6 @@
 import React from 'react'
-import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg'
+import { FFmpeg } from '@ffmpeg/ffmpeg'
+import { fetchFile, toBlobURL } from '@ffmpeg/util'
 import {
   FaExchangeAlt,
   FaFileVideo,
@@ -14,6 +15,8 @@ import {
   getEmojiFromType,
   capitalizeFirstLetter,
   parseFFmpegTimeLog,
+  parseBitrateFromLog,
+  isSizeImproved,
   calculateTimeRemaining,
   formatTimeRemaining,
   getFileSize,
@@ -22,6 +25,12 @@ import {
 import IconButton from './components/IconButton'
 import FileInput from './components/FileInput'
 import ConvertActions from './components/ConvertActions'
+import ConsentModal from './components/ConsentModal'
+
+export type FFMPEGResult =
+  | { data: Uint8Array<ArrayBuffer>; improved: true }
+  | { data: null; improved: false }
+  | undefined
 
 export const FFMPEGContext = React.createContext({
   isLoading: false,
@@ -30,13 +39,17 @@ export const FFMPEGContext = React.createContext({
   setProgress: (_progress: number) => {},
   targetFileSize: 0,
   setTargetFileSize: (_targetFileSize: number) => {},
+  statusMessage: null as string | null,
+  setStatusMessage: (_statusMessage: string | null) => {},
   targetDownloadUrl: '',
   setTargetDownloadUrl: (_targetDownloadUrl: string) => {},
   runFFMPEG: (
     _selectedFile: File,
     _outputName: string,
-    _method?: string
-  ): Promise<Uint8Array | undefined> => Promise.resolve(undefined),
+    _method?: string,
+    _enforceSizeGuarantee?: boolean,
+    _bitrateCeilingKbps?: number
+  ): Promise<FFMPEGResult> => Promise.resolve(undefined),
 })
 
 const MAXIMUM_FILE_SIZE = '1GB'
@@ -48,8 +61,10 @@ export default function Home() {
   const githubIconRef = React.useRef<HTMLAnchorElement>(null)
 
   const [isLoading, setIsLoading] = React.useState(false)
+  const [isCoreLoading, setIsCoreLoading] = React.useState(false)
   const [progress, setProgress] = React.useState(0)
   const [targetFileSize, setTargetFileSize] = React.useState(0)
+  const [statusMessage, setStatusMessage] = React.useState<string | null>(null)
   const [targetDownloadUrl, setTargetDownloadUrl] = React.useState('')
   const [timeRemaining, setTimeRemaining] = React.useState<string | null>(null)
   const [mediaAction, setMediaAction] = React.useState(RADIO_OPTIONS[0])
@@ -60,6 +75,8 @@ export default function Home() {
 
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = React.useState<string>('')
+  const [isConsentModalOpen, setIsConsentModalOpen] = React.useState(false)
+  const consentResolveRef = React.useRef<((value: boolean) => void) | null>(null)
 
   function handleFileChange(file: File | null) {
     if (file && checkMaximumFileSize(file.size)) {
@@ -91,21 +108,57 @@ export default function Home() {
     return true
   }
 
+  async function isFfmpegCoreCached(): Promise<boolean> {
+    if (typeof caches === 'undefined') return false
+    try {
+      const match = await caches.match('/ffmpeg/ffmpeg-core.wasm')
+      return match != null
+    } catch {
+      return false
+    }
+  }
+
   async function runFFMPEG(
     selectedFile: File,
     outputName: string,
-    method = ''
-  ) {
+    method = '',
+    enforceSizeGuarantee = false,
+    bitrateCeilingKbps?: number
+  ): Promise<FFMPEGResult> {
     try {
       if (selectedFile) {
-        const ffmpeg = createFFmpeg({
-          log: import.meta.env.DEV,
-          progress: ({ ratio }) => {
-            setProgress(Math.round(ratio * 100))
-          },
+        const cached = await isFfmpegCoreCached()
+        if (!cached) {
+          const agreed = await new Promise<boolean>((resolve) => {
+            consentResolveRef.current = resolve
+            setIsConsentModalOpen(true)
+          })
+          setIsConsentModalOpen(false)
+          consentResolveRef.current = null
+          if (!agreed) {
+            setStatusMessage(
+              "Conversion needs the ~31MB engine downloaded first. Nothing was downloaded — try again when you're ready."
+            )
+            return undefined
+          }
+        }
+
+        const ffmpeg = new FFmpeg()
+        let probedBitrate: number | null = null
+
+        ffmpeg.on('progress', ({ progress: ratio }) => {
+          setProgress(Math.round(ratio * 100))
+          setIsCoreLoading(false)
         })
 
-        ffmpeg.setLogger(({ message }) => {
+        ffmpeg.on('log', ({ message }) => {
+          if (import.meta.env.DEV) {
+            console.log(message)
+          }
+          const bitrate = parseBitrateFromLog(message)
+          if (bitrate !== null) {
+            probedBitrate = bitrate
+          }
           const timeLog = parseFFmpegTimeLog(message)
           if (
             timeLog &&
@@ -123,23 +176,56 @@ export default function Home() {
           }
         })
 
-        await ffmpeg.load()
-        ffmpeg.FS('writeFile', selectedFile.name, await fetchFile(selectedFile))
-        await ffmpeg.run(
+        setIsCoreLoading(true)
+        await ffmpeg.load({
+          coreURL: await toBlobURL('/ffmpeg/ffmpeg-core.js', 'text/javascript'),
+          wasmURL: await toBlobURL('/ffmpeg/ffmpeg-core.wasm', 'application/wasm'),
+        })
+        await ffmpeg.writeFile(selectedFile.name, await fetchFile(selectedFile))
+
+        if (bitrateCeilingKbps !== undefined) {
+          try {
+            await ffmpeg.exec(['-i', selectedFile.name])
+          } catch {
+            // -i-only exits non-zero; bitrate info captured in log handler
+          }
+
+          if (
+            probedBitrate !== null &&
+            probedBitrate <= bitrateCeilingKbps
+          ) {
+            await ffmpeg.terminate()
+            setIsCoreLoading(false)
+            setTimeRemaining(null)
+            return { data: null, improved: false }
+          }
+        }
+
+        await ffmpeg.exec([
           '-i',
           selectedFile.name,
           ...method.split(' '),
-          outputName
-        )
+          outputName,
+        ])
 
-        const writeData = ffmpeg.FS('readFile', outputName)
-        ffmpeg.exit()
+        const rawData = await ffmpeg.readFile(outputName)
+        const writeData = rawData as Uint8Array<ArrayBuffer>
+        await ffmpeg.terminate()
         setTimeRemaining(null)
+        setIsCoreLoading(false)
 
-        return writeData
+        if (
+          enforceSizeGuarantee &&
+          !isSizeImproved(selectedFile.size, writeData.byteLength)
+        ) {
+          return { data: null, improved: false }
+        }
+
+        return { data: writeData, improved: true }
       }
     } catch (error) {
       console.error(error)
+      setIsCoreLoading(false)
     }
   }
 
@@ -181,6 +267,8 @@ export default function Home() {
   function resetProgress() {
     setProgress(0)
     setTimeRemaining(null)
+    setIsCoreLoading(false)
+    setStatusMessage(null)
   }
 
   React.useEffect(() => {
@@ -196,6 +284,8 @@ export default function Home() {
         setProgress,
         targetFileSize,
         setTargetFileSize,
+        statusMessage,
+        setStatusMessage,
         targetDownloadUrl,
         setTargetDownloadUrl,
         runFFMPEG,
@@ -208,20 +298,16 @@ export default function Home() {
             Entropy
           </h1>
         </a>
-        <button
+        <a
+          ref={githubIconRef}
+          href="https://github.com/vyonizr/entropy"
+          target="_blank"
+          rel="noopener noreferrer"
           className="h-12 w-12 flex justify-center items-center rounded-full text-white/[.75] hover:text-white hover:bg-white/[.1]"
-          onClick={() => githubIconRef.current?.click()}
+          aria-label="GitHub repository"
         >
-          <a
-            ref={githubIconRef}
-            href="https://github.com/vyonizr/entropy"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-inherit hover:text-inherit"
-          >
-            <FaGithub className="text-3xl text-inherit hover:text-inherit" />
-          </a>
-        </button>
+          <FaGithub className="text-3xl" />
+        </a>
       </nav>
       <main className="flex flex-col items-center px-4 pt-4">
         <h1 className="text-5xl font-medium block md:hidden font-['Lexend_Deca'] ">
@@ -233,24 +319,29 @@ export default function Home() {
             <strong>No upload needed.</strong>
           </Balancer>
         </h2>
-        <ul className="mt-4">
-          {RADIO_OPTIONS.map((option) => (
-            <li key={option.value}>
-              <input
-                type="radio"
-                name="media-action"
-                value={option.label}
-                id={option.value}
-                checked={mediaAction.value === option.value}
-                onChange={() => setMediaAction(option)}
-                disabled={isLoading}
-              />
-              <label htmlFor={option.value}>{`${getEmojiFromType(
-                option.icon
-              )} ${option.label}`}</label>
-            </li>
-          ))}
-        </ul>
+        <fieldset className="mt-4">
+          <legend className="mb-2 text-sm font-medium text-gray-500">
+            Choose an action
+          </legend>
+          <ul>
+            {RADIO_OPTIONS.map((option) => (
+              <li key={option.value}>
+                <input
+                  type="radio"
+                  name="media-action"
+                  value={option.label}
+                  id={option.value}
+                  checked={mediaAction.value === option.value}
+                  onChange={() => setMediaAction(option)}
+                  disabled={isLoading}
+                />
+                <label htmlFor={option.value}>{`${getEmojiFromType(
+                  option.icon
+                )} ${option.label}`}</label>
+              </li>
+            ))}
+          </ul>
+        </fieldset>
         <FileInput
           className="w-full max-w-[22rem] mt-4 flex items-center justify-center"
           accept={acceptedFileTypes}
@@ -267,7 +358,7 @@ export default function Home() {
           <span className="ml-2">{pickFileText}</span>
         </FileInput>
         {error.isError && (
-          <p className="mt-2 text-red-500 text-center">{error.message}</p>
+          <p className="mt-2 text-red-500 text-center" role="alert">{error.message}</p>
         )}
         {selectedFile && (
           <>
@@ -294,6 +385,7 @@ export default function Home() {
               </p>
               <IconButton
                 icon="trash"
+                label="Remove file"
                 onClick={handleClearFile}
                 disabled={isLoading}
                 className="border-l-2 border-gray-200 bg-gray-200 text-gray-600"
@@ -302,10 +394,22 @@ export default function Home() {
             <ConvertActions action={mediaAction.value} file={selectedFile} />
           </>
         )}
+        {isCoreLoading && progress === 0 && (
+          <p className="mt-2" aria-live="polite">Preparing...</p>
+        )}
+        {statusMessage && (
+          <p className="mt-2" aria-live="polite">{statusMessage}</p>
+        )}
         {progress > 0 && (
           <>
-            <p className="mt-2">{progressText}</p>
-            <div className="h-2 w-full max-w-[22rem] overflow-hidden rounded bg-gray-300">
+            <p className="mt-2" aria-live="polite">{progressText}</p>
+            <div
+              className="h-2 w-full max-w-[22rem] overflow-hidden rounded bg-gray-300"
+              role="progressbar"
+              aria-valuenow={progress}
+              aria-valuemin={0}
+              aria-valuemax={100}
+            >
               <div
                 className="h-2 bg-primary"
                 style={{ width: `${progress}%`, transitionDuration: '100ms' }}
@@ -314,6 +418,13 @@ export default function Home() {
           </>
         )}
       </main>
+      {isConsentModalOpen && (
+        <ConsentModal
+          onAccept={() => consentResolveRef.current?.(true)}
+          onDecline={() => consentResolveRef.current?.(false)}
+          downloadSize="31MB"
+        />
+      )}
       <footer className="w-full absolute bottom-0 flex justify-center items-center h-8">
         v{import.meta.env.PACKAGE_VERSION}
       </footer>
