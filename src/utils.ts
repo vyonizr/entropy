@@ -145,7 +145,7 @@ export function parseFFmpegTimeLog(
   }
 
   const time = logMessage.match(/time=(\d{2}:\d{2}:\d{2}\.\d{2})/)
-  const speed = logMessage.match(/speed=(\d{1}\.\d{3})x/)
+  const speed = logMessage.match(/speed=\s*(\d+\.?\d*)x/)
 
   if (!time || !speed) {
     return null
