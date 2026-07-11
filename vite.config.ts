@@ -15,6 +15,20 @@ export default defineConfig({
       },
       workbox: {
         maximumFileSizeToCacheInBytes: 40 * 1024 * 1024,
+        globIgnores: ['**/ffmpeg/*'],
+        runtimeCaching: [
+          {
+            urlPattern: /\/ffmpeg\/.*/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'ffmpeg-core',
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 365 * 24 * 60 * 60,
+              },
+            },
+          },
+        ],
       },
       includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
       manifest: {

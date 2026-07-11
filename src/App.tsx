@@ -25,6 +25,7 @@ import {
 import IconButton from './components/IconButton'
 import FileInput from './components/FileInput'
 import ConvertActions from './components/ConvertActions'
+import ConsentModal from './components/ConsentModal'
 
 export type FFMPEGResult =
   | { data: Uint8Array<ArrayBuffer>; improved: true }
@@ -74,6 +75,8 @@ export default function Home() {
 
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = React.useState<string>('')
+  const [isConsentModalOpen, setIsConsentModalOpen] = React.useState(false)
+  const consentResolveRef = React.useRef<((value: boolean) => void) | null>(null)
 
   function handleFileChange(file: File | null) {
     if (file && checkMaximumFileSize(file.size)) {
@@ -105,6 +108,16 @@ export default function Home() {
     return true
   }
 
+  async function isFfmpegCoreCached(): Promise<boolean> {
+    if (typeof caches === 'undefined') return false
+    try {
+      const match = await caches.match('/ffmpeg/ffmpeg-core.wasm')
+      return match != null
+    } catch {
+      return false
+    }
+  }
+
   async function runFFMPEG(
     selectedFile: File,
     outputName: string,
@@ -114,6 +127,22 @@ export default function Home() {
   ): Promise<FFMPEGResult> {
     try {
       if (selectedFile) {
+        const cached = await isFfmpegCoreCached()
+        if (!cached) {
+          const agreed = await new Promise<boolean>((resolve) => {
+            consentResolveRef.current = resolve
+            setIsConsentModalOpen(true)
+          })
+          setIsConsentModalOpen(false)
+          consentResolveRef.current = null
+          if (!agreed) {
+            setStatusMessage(
+              "Conversion needs the ~31MB engine downloaded first. Nothing was downloaded — try again when you're ready."
+            )
+            return undefined
+          }
+        }
+
         const ffmpeg = new FFmpeg()
         let probedBitrate: number | null = null
 
@@ -389,6 +418,13 @@ export default function Home() {
           </>
         )}
       </main>
+      {isConsentModalOpen && (
+        <ConsentModal
+          onAccept={() => consentResolveRef.current?.(true)}
+          onDecline={() => consentResolveRef.current?.(false)}
+          downloadSize="31MB"
+        />
+      )}
       <footer className="w-full absolute bottom-0 flex justify-center items-center h-8">
         v{import.meta.env.PACKAGE_VERSION}
       </footer>
